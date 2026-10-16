@@ -2,9 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
   <title>Image Collector settings</title>
+  <link rel="stylesheet" href="options.css">
+  <script type="module" src="options.js"></script>
 </head>
 <body>
-  <p>Settings will appear here.</p>
+  <section>
+    <h2>Site access</h2>
+    <p>
+      With access to all websites, the extension downloads the original image file itself. Without it,
+      images from sites that block other origins are saved but can't be copied.
+    </p>
+    <div class="row">
+      <span id="access-status" class="status"></span>
+      <button id="access-toggle" type="button"></button>
+    </div>
+  </section>
+  <p class="muted">More settings (auto-delete, export and import, storage) are coming in a later step.</p>
 </body>
 </html>
