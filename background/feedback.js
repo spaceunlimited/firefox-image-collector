@@ -29,8 +29,11 @@ async function popupColors(tabId) {
     const tab = await browser.tabs.get(tabId);
     const { colors } = (await browser.theme.getCurrent(tab.windowId)) ?? {};
     const vars = chooseVars(colors, globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches ?? null);
-    if (!vars['--ic-popup']) return null;
-    return { bg: vars['--ic-popup'], text: vars['--ic-popup-text'] ?? null, border: vars['--ic-popup-border'] ?? null };
+    const bg = vars['--ic-popup'] ?? vars['--ic-bg'];
+    if (!bg) return null;
+    const text = vars['--ic-popup-text'] ?? vars['--ic-text'] ?? null;
+    const border = vars['--ic-popup-border'] ?? vars['--ic-border'] ?? null;
+    return { bg, text, border };
   } catch {
     return null;
   }
