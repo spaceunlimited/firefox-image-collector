@@ -19,13 +19,17 @@ export async function fetchImage(url) {
     // only CORS-enabled hosts answer, and those reject credentialed requests to "*".
     const credentials = url.startsWith('data:') ? 'omit' : (await hasAllSites()) ? 'include' : 'omit';
     const res = await fetch(url, { credentials, cache: 'force-cache', signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
-    if (!res.ok) return { error: 'http', status: res.status };
+    if (!res.ok) {
+      console.warn('[capture] fetch failed', url.slice(0, 120), 'HTTP', res.status);
+      return { error: 'http', status: res.status };
+    }
     if (Number(res.headers.get('content-length')) > MAX_BYTES) return { error: 'toolarge' };
     const bytes = new Uint8Array(await res.arrayBuffer());
     if (bytes.byteLength > MAX_BYTES) return { error: 'toolarge' };
     if (!bytes.byteLength) return { error: 'nobytes' };
     return { bytes, contentType: res.headers.get('content-type') };
   } catch (e) {
+    console.warn('[capture] fetch failed', url.slice(0, 120), e?.name, e?.message);
     return { error: e?.name === 'TimeoutError' ? 'timeout' : 'cors' };
   }
 }
@@ -36,7 +40,7 @@ async function inject(tabId, frameId, func, args) {
     return res?.result ?? null;
   } catch (e) {
     // Cross-origin frames without host permission, privileged pages, discarded tabs.
-    console.debug('[capture] injection failed', e?.message);
+    console.warn('[capture] page script failed', func.name, 'frame', frameId, e?.message);
     return null;
   }
 }
@@ -90,6 +94,7 @@ async function obtainBytes(info, tab, meta, firstFetch) {
   if (imageUrl !== srcUrl) got = kindOf(imageUrl) === 'blob' ? { error: 'nobytes' } : await fetchImage(imageUrl);
   if (!got.bytes && got.error !== 'toolarge') {
     const extracted = await inject(tab.id, frameId, extractImage, [info.targetElementId, imageUrl]);
+    console.log('[capture] page fallback', extracted?.dataUrl ? 'got image' : extracted?.error ?? 'no result');
     if (extracted?.dataUrl) {
       const fromPage = await fetchImage(extracted.dataUrl);
       if (fromPage.bytes) got = fromPage;
@@ -133,6 +138,7 @@ async function capture(info, tab, progress) {
   const probeP = info.targetElementId != null ? inject(tab.id, frameId, probeImage, [info.targetElementId]) : null;
   const firstFetch = kindOf(info.srcUrl) === 'blob' ? null : fetchImage(info.srcUrl);
   const meta = await probeP;
+  console.log('[capture] start', { srcUrl: info.srcUrl.slice(0, 120), frameId, probe: meta });
   const { imageUrl, got } = await obtainBytes(info, tab, meta, firstFetch);
   const kind = kindOf(imageUrl);
 
