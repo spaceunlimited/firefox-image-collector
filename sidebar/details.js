@@ -1,7 +1,7 @@
 // Details panel: preview, facts, tag editor, image addresses and capture history.
 import { domainOf } from '../shared/url.js';
 import { formatDims, formatBytes, relativeTime, absoluteTime, FAILURE_TEXT } from '../shared/format.js';
-import { normalizeTag, canOpenImage } from './model.js';
+import { normalizeTag, canOpenImage, suggestTags } from './model.js';
 
 const template = document.getElementById('details-tpl');
 
@@ -23,9 +23,18 @@ export class DetailsPanel {
       if (action && !action.disabled) return hooks.onAction(action.dataset.action, this.entry.id);
       const link = t.closest('.open-url');
       if (link) return hooks.onOpenUrl(link.dataset.url);
+      const suggestion = t.closest('.tag-suggestion');
+      if (suggestion) {
+        this.addTag(suggestion.dataset.tag);
+        const input = this.el.querySelector('.tag-input');
+        input.value = '';
+        input.focus();
+        return undefined;
+      }
       const remove = t.closest('.tag-remove');
       if (remove) {
-        hooks.onTagsChange(this.entry.id, this.entry.tags.filter((x) => x !== remove.dataset.tag));
+        this.entry = { ...this.entry, tags: this.entry.tags.filter((x) => x !== remove.dataset.tag) };
+        hooks.onTagsChange(this.entry.id, this.entry.tags);
         this.el.querySelector('.tag-input')?.focus();
       }
       return undefined;
@@ -37,8 +46,22 @@ export class DetailsPanel {
         this.close();
       }
     });
+    // Keep focus in the tag field when a suggestion is pressed, so focusout doesn't
+    // commit the half-typed text as its own tag.
+    el.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.tag-suggestion')) e.preventDefault();
+    });
+    el.addEventListener('input', (e) => {
+      if (e.target.classList?.contains('tag-input')) this.renderSuggestions(e.target.value);
+    });
+    el.addEventListener('focusin', (e) => {
+      if (e.target.classList?.contains('tag-input')) this.renderSuggestions(e.target.value);
+    });
     el.addEventListener('focusout', (e) => {
-      if (e.target.classList?.contains('tag-input')) this.commitTag(e.target);
+      if (!e.target.classList?.contains('tag-input')) return;
+      if (e.relatedTarget?.closest?.('.tag-suggest')) return;
+      this.commitTag(e.target);
+      this.renderSuggestions(null);
     });
   }
 
@@ -66,6 +89,7 @@ export class DetailsPanel {
       const input = this.el.querySelector('.tag-input');
       input.value = typing;
       input.focus();
+      this.renderSuggestions(typing);
     }
   }
 
@@ -78,11 +102,35 @@ export class DetailsPanel {
     this.hooks.onClose(id);
   }
 
-  commitTag(input) {
-    const tag = normalizeTag(input.value);
-    input.value = '';
+  addTag(raw) {
+    const tag = normalizeTag(raw);
     if (!tag || !this.entry || this.entry.tags.includes(tag)) return;
-    this.hooks.onTagsChange(this.entry.id, [...this.entry.tags, tag]);
+    this.entry = { ...this.entry, tags: [...this.entry.tags, tag] };
+    this.hooks.onTagsChange(this.entry.id, this.entry.tags);
+  }
+
+  commitTag(input) {
+    const value = input.value;
+    input.value = '';
+    this.addTag(value);
+  }
+
+  // Shows matching existing tags under the field; null hides them.
+  renderSuggestions(query) {
+    const box = this.el.querySelector('.tag-suggest');
+    if (!box) return;
+    const tags = query === null || !this.entry ? [] : suggestTags(this.allTags, this.entry.tags, query);
+    box.replaceChildren(
+      ...tags.map((tag) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'tag-suggestion';
+        b.dataset.tag = tag;
+        b.textContent = tag;
+        return b;
+      }),
+    );
+    box.hidden = tags.length === 0;
   }
 
   onTagKey(e) {
@@ -92,7 +140,8 @@ export class DetailsPanel {
       this.commitTag(input);
     } else if (e.key === 'Backspace' && input.value === '' && this.entry.tags.length) {
       e.preventDefault();
-      this.hooks.onTagsChange(this.entry.id, this.entry.tags.slice(0, -1));
+      this.entry = { ...this.entry, tags: this.entry.tags.slice(0, -1) };
+      this.hooks.onTagsChange(this.entry.id, this.entry.tags);
     } else if (e.key === 'Escape') {
       e.preventDefault();
       if (input.value) input.value = '';
@@ -102,6 +151,7 @@ export class DetailsPanel {
 
   render(allTags) {
     const entry = this.entry;
+    this.allTags = allTags;
     const node = template.content.firstElementChild.cloneNode(true);
     const $ = (sel) => node.querySelector(sel);
 
@@ -133,13 +183,6 @@ export class DetailsPanel {
       x.textContent = '×';
       chip.appendChild(x);
       chips.appendChild(chip);
-    }
-    const datalist = $('datalist');
-    for (const tag of allTags) {
-      if (entry.tags.includes(tag)) continue;
-      const opt = document.createElement('option');
-      opt.value = tag;
-      datalist.appendChild(opt);
     }
 
     const urls = $('.url-list');

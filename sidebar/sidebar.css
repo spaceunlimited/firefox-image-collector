@@ -187,3 +187,10 @@ body.details-open { overflow: hidden; }
   border: 1px solid var(--border); background: var(--bg); color: var(--text);
 }
 .banner .banner-close { border: 0; background: none; color: var(--muted); font-size: 16px; line-height: 1; padding: 0 4px; }
+.tag-suggest { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.tag-suggestion {
+  font: inherit; font-size: 12px; padding: 0 8px; border-radius: 10px; cursor: pointer;
+  border: 1px dashed var(--border); background: transparent; color: var(--text);
+}
+.tag-suggestion::before { content: "+ "; color: var(--muted); }
+.tag-suggestion:hover, .tag-suggestion:focus-visible { border-style: solid; background: var(--surface); }

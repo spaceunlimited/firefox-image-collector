@@ -102,3 +102,16 @@ export function normalizeTag(raw) {
 export function canOpenImage(entry) {
   return Boolean((entry.kind === 'http' && entry.urls[0]) || entry.hasFull || entry.hasThumb);
 }
+
+export const MAX_TAG_SUGGESTIONS = 8;
+
+// Existing tags to offer while typing: prefix matches first, then other matches, skipping
+// tags the entry already has. With an empty query, the most used tags. `allTags` is sorted by use.
+export function suggestTags(allTags, entryTags, query, max = MAX_TAG_SUGGESTIONS) {
+  const q = normalizeTag(query);
+  const available = allTags.filter((t) => !entryTags.includes(t) && t !== q);
+  if (!q) return available.slice(0, max);
+  const prefix = available.filter((t) => t.startsWith(q));
+  const inner = available.filter((t) => !t.startsWith(q) && t.includes(q));
+  return [...prefix, ...inner].slice(0, max);
+}
