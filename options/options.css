@@ -12,6 +12,7 @@
   color: var(--text);
   background: var(--bg);
 }
+[hidden] { display: none !important; }
 body { margin: 32px auto; max-width: 640px; padding: 0 16px; }
 h1 { font-size: 20px; margin: 0 0 16px; }
 h2 { font-size: 15px; margin: 0 0 4px; }
