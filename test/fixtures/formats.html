@@ -30,9 +30,12 @@
 </script>
 <script>
   if (location.protocol === 'file:') {
+    const rel = location.pathname.split('/test/fixtures/')[1] || '';
+    const url = 'http://localhost:8000/' + rel;
     document.body.insertAdjacentHTML('afterbegin',
       '<p style="background:#dc2626;color:#fff;padding:12px 16px;font-weight:bold;border-radius:6px">' +
-      'This page is open as a local file, so most tests give wrong results. ' +
-      'Run <code>npm run fixtures</code> and open http://localhost:8000/ instead.</p>');
+      'This page is open as a local file, so the tests give wrong results. ' +
+      'Make sure <code>npm run fixtures</code> is running, then ' +
+      '<a style="color:#fff;text-decoration:underline" href="' + url + '">open ' + url + '</a>.</p>');
   }
 </script>
