@@ -14,7 +14,7 @@ const realSetInterval = globalThis.setInterval;
 async function waitFor(check, what, timeout = 2000) {
   const start = Date.now();
   for (;;) {
-    const value = check();
+    const value = await check();
     if (value) return value;
     if (Date.now() - start > timeout) throw new Error(`Timed out waiting for ${what}`);
     await new Promise((r) => setTimeout(r, 20));
@@ -125,6 +125,25 @@ test('details shows facts and history; tags can be added and removed', async () 
   assert.deepEqual((await store.getEntry(pngId)).tags, ['mood board']);
   await waitFor(() => doc.querySelector('#tag-filters .chip'), 'tag filter chip');
 
+  // A second image gets the existing tag offered as a suggestion.
+  key(doc.body, 'Escape');
+  click(cardFor(fileId).querySelector('.menu-btn'));
+  click(doc.querySelector('#card-menu [data-action="tags"]'));
+  const input2 = panel.querySelector('.tag-input');
+  input2.value = 'mo';
+  input2.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+  const suggestion = await waitFor(() => panel.querySelector('.tag-suggestion'), 'suggestion');
+  assert.equal(suggestion.textContent, 'mood board');
+  suggestion.dispatchEvent(new dom.window.MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+  click(suggestion);
+  await waitFor(async () => (await store.getEntry(fileId)).tags.includes('mood board'), 'suggested tag saved');
+  assert.deepEqual((await store.getEntry(fileId)).tags, ['mood board']);
+  assert.equal(input2.value, '');
+  key(doc.body, 'Escape');
+
+  click(cardFor(pngId).querySelector('.menu-btn'));
+  click(doc.querySelector('#card-menu [data-action="details"]'));
+  await waitFor(() => panel.querySelector('.tag-chip'), 'tag chip again');
   click(panel.querySelector('.tag-remove'));
   await waitFor(() => !panel.querySelector('.tag-chip'), 'tag removed');
   assert.deepEqual((await store.getEntry(pngId)).tags, []);

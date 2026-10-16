@@ -76,3 +76,14 @@ test('canOpenImage', async () => {
   assert.equal(canOpenImage({ kind: 'data', urls: ['Embedded'], hasFull: false, hasThumb: false }), false);
   assert.equal(canOpenImage({ kind: 'blob', urls: ['Generated'], hasFull: true }), true);
 });
+
+test('suggestTags', async () => {
+  const { suggestTags } = await import('../../sidebar/model.js');
+  const all = ['mood board', 'logo', 'color', 'blue mood'];
+  assert.deepEqual(suggestTags(all, [], ''), all);
+  assert.deepEqual(suggestTags(all, ['logo'], ''), ['mood board', 'color', 'blue mood']);
+  assert.deepEqual(suggestTags(all, [], 'mo'), ['mood board', 'blue mood']);
+  assert.deepEqual(suggestTags(all, [], 'LO'), ['logo', 'color']);
+  assert.deepEqual(suggestTags(all, [], 'logo'), []);
+  assert.equal(suggestTags(Array.from({ length: 20 }, (_, i) => `t${i}`), [], '').length, 8);
+});
