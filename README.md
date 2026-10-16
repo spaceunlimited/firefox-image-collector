@@ -9,21 +9,23 @@ There are two documented ways. Both install the extension temporarily: it is rem
 
 **Option A: `web-ext run`** (`npm start`). Launches a *separate* Firefox instance with a fresh, throwaway
 profile, installs the extension and reloads it when files change. Your normal Firefox profile, bookmarks and
-extensions are not used, and anything you collect is lost when that window closes. Run it from a regular
-Terminal window, not from inside a sandboxed tool.
+extensions are not used, and anything you collect is lost when that window closes. Optional: on some macOS
+setups Firefox shows "Profile Missing" when started from Terminal with a separate profile, and then web-ext
+fails with `ECONNREFUSED`. Use option B in that case.
 
 ```sh
 npm install
 npm start
 ```
 
-**Option B: `about:debugging`** in your everyday Firefox.
+**Option B: `about:debugging`** in your everyday Firefox. This is the default workflow for this project.
 
 1. Open `about:debugging#/runtime/this-firefox`.
 2. Click **Load Temporary Add-on…** and pick `manifest.json` in this folder.
 3. After editing code, click **Reload** on the add-on's card. Click **Inspect** for the background console.
 
-The add-on stays until you remove it or restart Firefox. Collected data in `storage.local` survives removal.
+The add-on stays until you remove it or restart Firefox; after a restart, load it again. Collected data in
+`storage.local` is kept across reloads and re-adds because the add-on ID in `manifest.json` stays the same.
 
 **Permissions during testing.** Temporary installs grant install-time permissions silently, so "access to
 all sites" starts out granted. To test without it, revoke it under about:addons → Image Collector →
