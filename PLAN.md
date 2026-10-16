@@ -128,7 +128,7 @@ Notes (verified on MDN):
   unloads after idle. All listeners must be registered synchronously at top level. Menus created in
   `runtime.onInstalled` persist across unloads and restarts.
 - `host_permissions` are **optional in Firefox MV3** (shown in the install prompt from Firefox 127, but the
-  user can decline or revoke; temporary add-ons do not get them automatically). The extension must work
+  user can decline or revoke; temporary installs grant them silently). The extension must work
   degraded without them and offer a grant button (`permissions.request({ origins: ["<all_urls>"] })`,
   needs a user gesture → options page / sidebar banner).
 - `browser_style` is not supported in MV3 ≥ Firefox 118; do not set it.
@@ -429,8 +429,10 @@ Acceptance criteria:
    `npx web-ext lint` before each milestone.
 2. "Inspect" next to the add-on opens the background console; the sidebar document can be inspected from
    the same toolbox (frame picker) or via the Browser Toolbox.
-3. Temporary add-ons do **not** get `<all_urls>` automatically: enable it under about:addons → Image
-   Collector → Permissions, or via the options-page button. Test both states.
+3. Temporary installs (about:debugging and `web-ext run`) grant install-time permissions silently, so
+   `<all_urls>` starts out granted. To test the "no site access" state, revoke it under about:addons →
+   Image Collector → Permissions. To see the real install prompt, install the `.zip` via "Install Add-on
+   From File" in Nightly or Developer Edition with `xpinstall.signatures.required` set to false.
 4. Allow the extension in private windows (about:addons → Details → "Run in Private Windows") for the
    incognito test.
 
@@ -488,4 +490,4 @@ Options / data
 3. Anchor-download from the sidebar document (else `downloads` permission).
 4. `storage.local.getBytesInUse(null)` support in current Firefox.
 5. `fetch(blobUrl)` from an injected function vs canvas draw for `blob:` images.
-6. Whether `host_permissions` are granted at install for a signed/`web-ext run` install vs a temporary load.
+6. Resolved: temporary installs grant `host_permissions` silently (Extension Workshop, test permission requests).
