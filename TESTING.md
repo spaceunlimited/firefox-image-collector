@@ -23,47 +23,47 @@ New since round 4: a ⋯ menu on every card, a details view, tags, delete with U
 settings page. Any page works for these tests, including real websites.
 
 **Before you start**
-- [ ] `about:debugging` → **Reload** on Image Collector (needed: the manifest changed)
-- [ ] Open the sidebar
+- [ X] `about:debugging` → **Reload** on Image Collector (needed: the manifest changed)
+- [ X] Open the sidebar
 
 ### Card menu
-- [ ] Hover a card: a ⋯ button appears top right (in list view it is always visible)
-- [ ] Click ⋯: a menu opens with Re-copy image, Open image, Open source page, Details, Edit tags, Delete
-- [ ] Arrow keys move through the menu; Escape closes it
-- [ ] **Re-copy image** on a card from a real website: "Copied" at the bottom, and pasting works
-- [ ] **Open image** opens the image itself in a new tab
-- [ ] **Open source page** opens the page it was collected from
+- [X ] Hover a card: a ⋯ button appears top right (in list view it is always visible)
+- [ X] Click ⋯: a menu opens with Re-copy image, Open image, Open source page, Details, Edit tags, Delete
+- [ X] Arrow keys move through the menu; Escape closes it
+- [ X] **Re-copy image** on a card from a real website: "Copied" at the bottom, and pasting works
+- [ X] **Open image** opens the image itself in a new tab
+- [ X] **Open source page** opens the page it was collected from
 
 ### Details
-- [ ] **Details** opens a panel with a larger preview, size, format, file size, dates and copy count
-- [ ] "Found on" lists every page the image was collected from, newest first
-- [ ] Clicking a page title or image address opens it in a new tab
-- [ ] On a card with the orange "!", details explain why the copy failed
-- [ ] The ✕ button and Escape close the panel
+- [ X] **Details** opens a panel with a larger preview, size, format, file size, dates and copy count
+- [ X] "Found on" lists every page the image was collected from, newest first
+- [ X] Clicking a page title or image address opens it in a new tab
+- [ X] On a card with the orange "!", details explain why the copy failed | Last attempt failed. The site blocks access to the image file.
+- [ X] The ✕ button and Escape close the panel
 
 ### Tags
-- [ ] **Edit tags** opens details with the cursor in the tag field
-- [ ] Type a tag and press Enter: it appears as a chip. A comma also adds it
-- [ ] Add the same tag to a second image: the field suggests it as you type
-- [ ] Tag chips appear under the toolbar; clicking one filters the cards; two selected = both tags required
-- [ ] × on a chip removes the tag; Backspace in an empty field removes the last tag
-- [ ] Tags are found by search
+- [X ] **Edit tags** opens details with the cursor in the tag field
+- [X ] Type a tag and press Enter: it appears as a chip. A comma also adds it
+- [ -] Add the same tag to a second image: the field suggests it as you type | does not suggest but also doesn't recreate a duplicate
+- [X ] Tag chips appear under the toolbar; clicking one filters the cards; two selected = both tags required
+- [ X] × on a chip removes the tag; Backspace in an empty field removes the last tag
+- [X ] Tags are found by search
 
 ### Delete with Undo
-- [ ] **Delete** removes the card right away and shows "Image deleted · Undo"
-- [ ] **Undo** within 6 seconds brings the card back with its tags
-- [ ] Without Undo, the card stays deleted after reopening the sidebar
+- [ X] **Delete** removes the card right away and shows "Image deleted · Undo"
+- [X ] **Undo** within 6 seconds brings the card back with its tags
+- [X] Without Undo, the card stays deleted after reopening the sidebar
 
 ### Settings (gear button in the sidebar, opens in a tab)
-- [ ] Site access shows its status; turning it off and on works
-- [ ] With site access off, capture an image from another site that fails to copy: an orange banner in the
-  sidebar offers **Allow**. Allow turns access back on and the banner disappears
-- [ ] **Export JSON** downloads a file. **Export CSV** downloads a file that opens in Numbers or Excel
-- [ ] **Delete all images…** asks for confirmation, then empties the sidebar. The empty-state hint shows
-- [ ] **Import** the JSON you just exported: all cards come back with thumbnails and tags
-- [ ] Import the same file again: "Added 0 images, merged N", no duplicates
-- [ ] Automatic cleanup: choosing a period shows how many images would be deleted before doing it
-- [ ] Storage shows the number of images and space used
+- [X ] Site access shows its status; turning it off and on works
+- [ X] With site access off, capture an image from another site that fails to copy: an orange banner in the
+  sidebar offers **Allow**. Allow turns access back on and the banner disappears | i can copy a page froom another site not sure what should be happening
+- [X ] **Export JSON** downloads a file. **Export CSV** downloads a file that opens in Numbers or Excel 
+- [X ] **Delete all images…** asks for confirmation, then empties the sidebar. The empty-state hint shows | there is soemthing weird, i can see the delete all button and the popup static underneight, the popup gets populated when i press the delete all button, the buttons in the pop up can not be clicked, no execution
+- [ X] **Import** the JSON you just exported: all cards come back with thumbnails and tags
+- [X ] Import the same file again: "Added 0 images, merged N", no duplicates
+- [X ] Automatic cleanup: choosing a period shows how many images would be deleted before doing it
+- [ X] Storage shows the number of images and space used
 
 ### Optional: why localhost images failed in round 4
 - [ ] On `http://localhost:8000/responsive.html`, capture the pink box, then copy all lines starting with
