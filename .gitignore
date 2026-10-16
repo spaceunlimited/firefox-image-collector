@@ -4,3 +4,4 @@ web-ext-artifacts/
 *.log
 test/fixtures/img/huge.*
 test/preview/out/
+test/Screenshot*.png

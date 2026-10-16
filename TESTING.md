@@ -25,24 +25,24 @@ I checked them in headless Chromium; this round checks real Firefox.
 - [ ] `about:debugging` → **Reload** on Image Collector (needed: new `theme` permission)
 
 ### Default themes
-- [ ] about:addons → Themes → **Light**: sidebar background, search field and menus look like Firefox's own
-- [ ] Switch to **Dark** with the sidebar open: it follows without reopening
-- [ ] Toolbar is one row: search, calendar (date filter), view toggle, gear
-- [ ] Calendar button opens a menu; picking "Last 7 days" shows a blue "Last 7 days ×" pill; the pill clears it
-- [ ] Day headings fold and unfold when clicked
-- [ ] List view: "3× collected" appears in the text, not over the thumbnail
+- [ - ] about:addons → Themes → **Light**: sidebar background, search field and menus look like Firefox's own | light but i am in dark mode and it absolutely doesn't look like my version of the default theme
+- [ - ] Switch to **Dark** with the sidebar open: it follows without reopening | switched dark mode to light mode and back in the mac settings, no change in the site bar
+- [  X] Toolbar is one row: search, calendar (date filter), view toggle, gear
+- [ X] Calendar button opens a menu; picking "Last 7 days" shows a blue "Last 7 days ×" pill; the pill clears it
+- [ X] Day headings fold and unfold when clicked
+- [ ] List view: "3× collected" appears in the text, not over the thumbnail | i only see today
 
 ### An add-on theme
-- [ ] Install any colorful theme from addons.mozilla.org (for example one with a purple or green sidebar)
-- [ ] The sidebar, search field, ⋯ menus and the bottom notices take the theme's colors
-- [ ] The on-page toast after a capture uses the theme's popup colors
-- [ ] Switch back to the default theme: the sidebar returns to the Firefox colors
+- [ X] Install any colorful theme from addons.mozilla.org (for example one with a purple or green sidebar) | i see minimal changes, yes some colors of icons and hovers change, but the background is always white and general design lanauge isn't used, for example roudned corner radius on search bar and icons
+- [ X ] The sidebar, search field, ⋯ menus and the bottom notices take the theme's colors | somehwat yes
+- [ X] The on-page toast after a capture uses the theme's popup colors | i don't see an open page toast, only a copy and collected. it's also not styled after the theme
+- [ X] Switch back to the default theme: the sidebar returns to the Firefox colors | default actually changes dark and night mode, just not for example if i switch to the ASH theme.
 
 ### Settings page
-- [ ] Looks like Firefox Settings (about:preferences), in light and dark
+- [X ] Looks like Firefox Settings (about:preferences), in light and dark
 
 ### Report back
-- [ ] Screenshots of the sidebar in one default theme and one add-on theme, and anything that looks off
+- [ X] Screenshots of the sidebar in one default theme and one add-on theme, and anything that looks off
 
 ## Round 6 results (done)
 
