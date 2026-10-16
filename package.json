@@ -1,0 +1,17 @@
+{
+  "name": "image-collector",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Firefox extension: copy an image and remember where you found it.",
+  "type": "module",
+  "scripts": {
+    "start": "web-ext run --source-dir . --browser-console",
+    "lint": "web-ext lint --source-dir .",
+    "build": "web-ext build --source-dir . --overwrite-dest",
+    "test": "node --test test/unit/",
+    "fixtures": "python3 -m http.server 8000 --directory test/fixtures"
+  },
+  "devDependencies": {
+    "web-ext": "^10.8.0"
+  }
+}
