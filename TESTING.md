@@ -17,6 +17,82 @@ Check items off by changing `[ ]` to `[x]`. Note failures under the item.
 - [ ] Open the sidebar with the toolbar button
 - [ ] Open the add-on's **Inspect** console to watch for errors
 
+## Round 2: retest these
+
+First reload the add-on: `about:debugging` → **Reload** on the Image Collector card. Keep its **Inspect**
+console open. Lines starting with `[background]` and `[capture]` are from the extension.
+
+### R1. srcset image: `responsive.html`, first image
+
+- [ ] Right-click the first image → **Copy Image + Collect**. Look at the new card's thumbnail in the
+  sidebar. The image itself has text drawn on it, like "srcset 640w". Note the number here:
+  Expected 640w on a Retina display, 320w otherwise.
+
+### R2. Lazy-load placeholder: `responsive.html`, third image (the empty pink box)
+
+The page never loads this image. It only has a tiny invisible placeholder, and the real address is
+hidden in the page markup. This is how many news and shop sites lazy-load images.
+
+- [ ] Right-click inside the pink box → **Copy Image + Collect**.
+  Expected: the card shows a pink image reading "Lazy real image", 640 × 400.
+  Failed if the card is blank, says "No preview", or shows 1 × 1.
+
+### R3. Native lazy image: `responsive.html`, bottom of the page
+
+- [ ] Scroll all the way down, right-click the last image → **Copy Image + Collect**.
+  Expected: copies, and the card shows 1280 × 800.
+
+### R4. Frames: `frames.html`
+
+The page has two framed boxes, each showing a blue "In iframe" image, and a grey "Cross-origin" image
+at the bottom. Right-click each image directly and choose **Copy Image + Collect**.
+
+- [ ] Image in the first box ("Same-origin iframe") copies and gives a toast
+- [ ] Image in the second box ("Cross-origin iframe") copies and gives a toast
+- [ ] Both iframe images merge into **one** card with a ×2 badge (same file, two addresses)
+- [ ] Grey "Cross-origin" image copies and gets its own card
+
+### R5. Without site access (section 4 below, not yet done)
+
+- [ ] about:addons → Image Collector → **Permissions** tab → turn off access to all websites.
+  Reload `frames.html`, then capture the grey "Cross-origin" image.
+  Expected: an orange "!" on its card, and a toast saying it was saved but not copied.
+- [ ] Turn site access back on.
+
+### R6. Huge images: `huge.html`
+
+Converting these takes a few seconds. A grey "Copying image…" toast should now appear while it works.
+
+- [ ] Green 8000 × 6000 WebP (second image): final toast says "Copied at reduced size & collected"
+- [ ] Its card shows 8000 × 6000 and no orange "!"
+- [ ] Copy the `[capture] done` line for this image from the console here:
+
+### R7. Private window
+
+Temporary add-ons may already be allowed in private windows.
+
+- [ ] Open a private window (⌘⇧P) and go to `http://localhost:8000/formats.html`.
+- [ ] Does the right-click menu show **Copy Image + Collect**? If not, check about:addons →
+  Image Collector → **Run in Private Windows** → Allow, and try again.
+- [ ] Capture an image. Expected: toast "Copied (not collected in private windows)", no new card.
+
+### R8. Wake-up after idle
+
+Firefox unloads the extension's background when it is idle. That is normal: the menu click should
+start it again on its own, without touching about:debugging.
+
+- [ ] Leave Firefox alone for 2 minutes. On the about:debugging card, the background may show as stopped.
+- [ ] Without clicking anything in about:debugging, right-click an image → **Copy Image + Collect**.
+- [ ] Does the menu item appear? Is there a toast? Does a card appear?
+- [ ] Copy any console lines that appear here (expected: `[background] started`, then `[background] menu click`):
+
+### R9. Thumbnail click on `formats.html` cards
+
+- [ ] Click the thumbnail of the PNG card (the ×3 one). What happens?
+- [ ] Click the thumbnail of the data: or blob: card. What happens?
+
+## Round 1 results (done)
+
 ## 1. Formats: `http://localhost:8000/formats.html`
 
 - [X ] Every image copies; paste a few into Preview or Figma and they arrive intact
