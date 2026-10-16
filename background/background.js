@@ -17,15 +17,23 @@ async function applyRetention() {
   }
 }
 
+// Creates the menu item. Safe to call repeatedly: a duplicate id is reported and ignored.
+function ensureMenu() {
+  browser.menus.create({ id: MENU_ID, title: 'Copy Image + Collect', contexts: ['image'] }, () => {
+    const err = browser.runtime.lastError;
+    if (err && !/already exists/i.test(err.message)) console.warn('[background] menu create failed', err.message);
+  });
+}
+
 browser.runtime.onInstalled.addListener(async () => {
   await ensureSchema();
   await browser.menus.removeAll();
-  browser.menus.create({
-    id: MENU_ID,
-    title: 'Copy Image + Collect',
-    contexts: ['image'],
-  });
+  ensureMenu();
 });
+
+// Event-page menus normally persist, but recreating them on every start also covers
+// restarts that skip onInstalled (permission changes such as private-window access).
+ensureMenu();
 
 browser.menus.onClicked.addListener((info, tab) => {
   console.log('[background] menu click', info.menuItemId, info.srcUrl?.slice(0, 120));
