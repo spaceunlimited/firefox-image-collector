@@ -40,6 +40,10 @@ npm run lint        # web-ext lint
 
 Manual test rounds are tracked in `TESTING.md`.
 
+Visual check without Firefox: `npm run preview` renders the sidebar and settings pages in headless
+Chromium with sample data (light, dark and a custom theme) into `test/preview/out/`. Set `CHROMIUM_PATH`
+if Playwright's browser isn't installed.
+
 ## Where things are
 
 - Right-click an image → **Copy Image + Collect**.

@@ -3,3 +3,4 @@ web-ext-artifacts/
 .DS_Store
 *.log
 test/fixtures/img/huge.*
+test/preview/out/

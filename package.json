@@ -9,10 +9,12 @@
     "lint": "web-ext lint --source-dir .",
     "build": "web-ext build --source-dir . --overwrite-dest",
     "test": "node --test --test-force-exit 'test/unit/*.test.js'",
-    "fixtures": "python3 -m http.server 8000 --directory test/fixtures"
+    "fixtures": "python3 -m http.server 8000 --directory test/fixtures",
+    "preview": "node test/preview/shoot.mjs"
   },
   "devDependencies": {
     "jsdom": "^29.1.1",
+    "playwright-core": "^1.64.1",
     "web-ext": "^10.8.0"
   }
 }
