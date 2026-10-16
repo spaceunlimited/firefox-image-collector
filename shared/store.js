@@ -8,10 +8,11 @@
 //   thumb:<id>    thumbnail data URL
 //   full:<id>     stored copy of the original, only for data:/blob: sources
 import { normalizeUrl } from './url.js';
+import { mergeEntries } from './export.js';
+import { MAX_CAPTURES_PER_ENTRY, MAX_TITLE_LENGTH } from './limits.js';
 
 export const SCHEMA_VERSION = 1;
-export const MAX_CAPTURES_PER_ENTRY = 200;
-export const MAX_TITLE_LENGTH = 300;
+export { MAX_CAPTURES_PER_ENTRY, MAX_TITLE_LENGTH };
 export const DEFAULT_SETTINGS = Object.freeze({
   autoDeleteDays: null,
   view: 'grid',
@@ -323,4 +324,79 @@ export async function ensureSchema() {
   const { meta } = await area().get('meta');
   if (!meta) await area().set({ meta: { schemaVersion: SCHEMA_VERSION } });
   // Future migrations go here, keyed on meta.schemaVersion.
+}
+
+// Everything needed for a full export: entries newest first plus their image data.
+export async function exportData() {
+  const entries = await loadAll();
+  const keys = entries.flatMap((e) => [e.hasThumb && thumbKey(e.id), e.hasFull && fullKey(e.id)]).filter(Boolean);
+  const got = keys.length ? await area().get(keys) : {};
+  const thumbs = {};
+  const fulls = {};
+  for (const e of entries) {
+    if (got[thumbKey(e.id)]) thumbs[e.id] = got[thumbKey(e.id)];
+    if (got[fullKey(e.id)]) fulls[e.id] = got[fullKey(e.id)];
+  }
+  return { entries, thumbs, fulls };
+}
+
+/**
+ * Imports sanitized items (see export.js parseImport). Matches existing entries by hash,
+ * then by any image URL, and merges; everything else is added.
+ * @returns {Promise<{ added: number, merged: number }>}
+ */
+export function importItems(items) {
+  return withLock(async () => {
+    const index = await readIndex();
+    let added = 0;
+    let merged = 0;
+    for (const { entry: incoming, thumb, full } of items) {
+      const matchId =
+        (incoming.hash && index.hashes[incoming.hash]) ||
+        (incoming.kind === 'http' && incoming.urls.map((u) => index.urls[u]).find(Boolean)) ||
+        null;
+      const existing = matchId ? await getEntry(matchId) : null;
+      let entry;
+      if (existing) {
+        entry = mergeEntries(existing, incoming);
+        merged += 1;
+      } else {
+        const idTaken = !incoming.id || index.ids.some((x) => x.id === incoming.id);
+        entry = { ...incoming, id: idTaken ? newId() : incoming.id, hasThumb: false, hasFull: false };
+        added += 1;
+      }
+      const sets = { [entryKey(entry.id)]: entry };
+      if (thumb && !entry.hasThumb) {
+        sets[thumbKey(entry.id)] = thumb;
+        entry.hasThumb = true;
+      }
+      if (full && !entry.hasFull) {
+        sets[fullKey(entry.id)] = full;
+        entry.hasFull = true;
+      }
+      registerInIndex(index, entry);
+      await area().set(sets);
+    }
+    await area().set({ index });
+    return { added, merged };
+  });
+}
+
+// Bytes used by storage.local, or an estimate where getBytesInUse is unavailable.
+export async function bytesInUse() {
+  try {
+    if (typeof area().getBytesInUse === 'function') return await area().getBytesInUse(null);
+  } catch {
+    // Fall through to the estimate.
+  }
+  const all = await area().get(null);
+  let total = 0;
+  for (const [k, v] of Object.entries(all)) total += k.length + JSON.stringify(v).length;
+  return total;
+}
+
+export async function countOlderThan(days, now = Date.now()) {
+  if (!days || days <= 0) return 0;
+  const cutoff = now - days * 86_400_000;
+  return (await readIndex()).ids.filter((x) => x.last < cutoff).length;
 }
