@@ -8,7 +8,7 @@
     "start": "web-ext run --source-dir . --browser-console",
     "lint": "web-ext lint --source-dir .",
     "build": "web-ext build --source-dir . --overwrite-dest",
-    "test": "node --test test/unit/",
+    "test": "node --test 'test/unit/*.test.js'",
     "fixtures": "python3 -m http.server 8000 --directory test/fixtures"
   },
   "devDependencies": {
