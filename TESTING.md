@@ -17,7 +17,34 @@ Check items off by changing `[ ]` to `[x]`. Note failures under the item.
 - [ ] Open the sidebar with the toolbar button
 - [ ] Open the add-on's **Inspect** console to watch for errors
 
-## Round 3: rerun through the test server
+## Round 4: the four server tests
+
+Round 3 confirmed that wake-up after idle works. Private-window testing is dropped for now.
+
+These four tests only work when the page comes from the test server. In round 3 the pages were still
+local files: the console showed `file:///…` addresses.
+
+**Before each test, look at the address bar.** It must start with `http://localhost:8000/`.
+If it starts with `file:///`, or the page shows a red banner, click the link in the banner.
+
+- [ ] Terminal: `npm run fixtures` is running (it prints "Serving HTTP on … port 8000")
+- [ ] `about:debugging` → **Reload** on Image Collector
+
+### T1. Lazy image: `http://localhost:8000/responsive.html`
+- [ ] Right-click the pink box → **Copy Image + Collect**. Card shows pink "Lazy real image", 640 × 400
+
+### T2. srcset: same page, first image
+- [ ] Capture it. The newest card shows "srcset 640w" or "srcset 320w". Which one?
+
+### T3. Frames: `http://localhost:8000/frames.html`
+- [ ] Capture the image in the first box: copies, card has a thumbnail
+- [ ] Capture the image in the second box: copies, and merges with the first into one card showing ×2
+
+### T4. Huge WebP: `http://localhost:8000/huge.html`, second (green) image
+- [ ] Toast ends with "Copied (reduced size) & saved"
+- [ ] Paste the `[capture] done` line: it should start with `imageUrl: "http://localhost:8000/`
+
+## Round 3 results (done)
 
 Round 2 ran on pages opened as local files (`file:///…`). Firefox gives extensions much less access
 there, so several results were misleading. This round reruns those through the server.
