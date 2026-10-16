@@ -17,7 +17,61 @@ Check items off by changing `[ ]` to `[x]`. Note failures under the item.
 - [ ] Open the sidebar with the toolbar button
 - [ ] Open the add-on's **Inspect** console to watch for errors
 
-## Round 2: retest these
+## Round 3: rerun through the test server
+
+Round 2 ran on pages opened as local files (`file:///…`). Firefox gives extensions much less access
+there, so several results were misleading. This round reruns those through the server.
+
+**Before you start**
+- [ ] In a terminal: `cd ~/Documents/Private/Explorations/image-collector && npm run fixtures`, leave it running
+- [ ] In Firefox, type `http://localhost:8000/` into the address bar. Don't double-click the HTML files.
+  If a page shows a red banner, it was opened as a file.
+- [ ] `about:debugging` → **Reload** on Image Collector, and open its **Inspect** console
+- [ ] Ignore the cards from earlier rounds; deleting cards arrives in the next step
+
+### S1. Lazy placeholder: `http://localhost:8000/responsive.html`, the pink box
+- [ ] Card shows a pink "Lazy real image", 640 × 400
+
+### S2. srcset: same page, first image
+- [ ] The **newest** card (top left under "Today") shows text "srcset 640w" or "srcset 320w". Which one?
+
+### S3. Frames: `http://localhost:8000/frames.html`
+- [ ] First box image copies, with a thumbnail
+- [ ] Second box image copies
+- [ ] Both merge into one card with ×2
+
+### S4. Huge WebP: `http://localhost:8000/huge.html`, second image
+- [ ] Grey "Copying image…" toast, then "Copied at reduced size & collected"
+- [ ] Paste the `[capture] done` line here:
+
+### S5. Without site access (uses the new settings switch)
+- [ ] Sidebar → gear button → **Turn off** under Site access. Status should say "Not allowed".
+- [ ] Reload `frames.html`, capture the grey "Cross-origin" image. Expected: orange "!" on the card and a
+  toast saying it was saved but not copied, with a hint about site access.
+- [ ] Back in settings, **Allow access to all websites**. Firefox asks to confirm. Status says "Allowed".
+
+### S6. Private window
+- [ ] about:addons → Image Collector → set **Run in Private Windows** to Allow
+- [ ] Open a private window (⌘⇧P), go to `http://localhost:8000/formats.html`, right-click an image.
+  Is **Copy Image + Collect** in the menu?
+- [ ] If yes, capture: toast "Copied (not collected in private windows)", and no new card
+
+### S7. Wake-up after idle
+
+"Stopped" on the about:debugging card after a few seconds is **expected**. Firefox pauses the
+background to save memory, and the menu click should restart it. This test checks exactly that.
+
+- [ ] Wait until the about:debugging card shows the background as stopped
+- [ ] Don't click anything in about:debugging. Right-click an image on a localhost page → **Copy Image + Collect**
+- [ ] Did you get a toast and a new card?
+- [ ] Paste the console lines that appeared:
+
+### S8. Thumbnail clicks
+- [ ] Click a card captured from a localhost page: opens that page in a new tab
+- [ ] Click a card captured from a local file in round 2: a message at the bottom of the sidebar
+  explains Firefox doesn't allow it
+
+## Round 2 results (done)
 
 First reload the add-on: `about:debugging` → **Reload** on the Image Collector card. Keep its **Inspect**
 console open. Lines starting with `[background]` and `[capture]` are from the extension.
