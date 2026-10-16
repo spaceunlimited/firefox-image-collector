@@ -1,4 +1,4 @@
-# Manual test checklist: v1 steps 1–5
+# Manual test checklist: v1
 
 Covers capture, conversion, grouping, failures and the read-only sidebar.
 Check items off by changing `[ ]` to `[x]`. Note failures under the item.
@@ -17,7 +17,59 @@ Check items off by changing `[ ]` to `[x]`. Note failures under the item.
 - [ ] Open the sidebar with the toolbar button
 - [ ] Open the add-on's **Inspect** console to watch for errors
 
-## Round 4: the four server tests
+## Round 5: card actions, details, tags, settings
+
+New since round 4: a ⋯ menu on every card, a details view, tags, delete with Undo, re-copy, and a full
+settings page. Any page works for these tests, including real websites.
+
+**Before you start**
+- [ ] `about:debugging` → **Reload** on Image Collector (needed: the manifest changed)
+- [ ] Open the sidebar
+
+### Card menu
+- [ ] Hover a card: a ⋯ button appears top right (in list view it is always visible)
+- [ ] Click ⋯: a menu opens with Re-copy image, Open image, Open source page, Details, Edit tags, Delete
+- [ ] Arrow keys move through the menu; Escape closes it
+- [ ] **Re-copy image** on a card from a real website: "Copied" at the bottom, and pasting works
+- [ ] **Open image** opens the image itself in a new tab
+- [ ] **Open source page** opens the page it was collected from
+
+### Details
+- [ ] **Details** opens a panel with a larger preview, size, format, file size, dates and copy count
+- [ ] "Found on" lists every page the image was collected from, newest first
+- [ ] Clicking a page title or image address opens it in a new tab
+- [ ] On a card with the orange "!", details explain why the copy failed
+- [ ] The ✕ button and Escape close the panel
+
+### Tags
+- [ ] **Edit tags** opens details with the cursor in the tag field
+- [ ] Type a tag and press Enter: it appears as a chip. A comma also adds it
+- [ ] Add the same tag to a second image: the field suggests it as you type
+- [ ] Tag chips appear under the toolbar; clicking one filters the cards; two selected = both tags required
+- [ ] × on a chip removes the tag; Backspace in an empty field removes the last tag
+- [ ] Tags are found by search
+
+### Delete with Undo
+- [ ] **Delete** removes the card right away and shows "Image deleted · Undo"
+- [ ] **Undo** within 6 seconds brings the card back with its tags
+- [ ] Without Undo, the card stays deleted after reopening the sidebar
+
+### Settings (gear button in the sidebar, opens in a tab)
+- [ ] Site access shows its status; turning it off and on works
+- [ ] With site access off, capture an image from another site that fails to copy: an orange banner in the
+  sidebar offers **Allow**. Allow turns access back on and the banner disappears
+- [ ] **Export JSON** downloads a file. **Export CSV** downloads a file that opens in Numbers or Excel
+- [ ] **Delete all images…** asks for confirmation, then empties the sidebar. The empty-state hint shows
+- [ ] **Import** the JSON you just exported: all cards come back with thumbnails and tags
+- [ ] Import the same file again: "Added 0 images, merged N", no duplicates
+- [ ] Automatic cleanup: choosing a period shows how many images would be deleted before doing it
+- [ ] Storage shows the number of images and space used
+
+### Optional: why localhost images failed in round 4
+- [ ] On `http://localhost:8000/responsive.html`, capture the pink box, then copy all lines starting with
+  `[capture]` from the add-on's Inspect console here:
+
+## Round 4 results (done)
 
 Round 3 confirmed that wake-up after idle works. Private-window testing is dropped for now.
 
