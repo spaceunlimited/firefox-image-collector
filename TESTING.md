@@ -17,7 +17,34 @@ Check items off by changing `[ ]` to `[x]`. Note failures under the item.
 - [ ] Open the sidebar with the toolbar button
 - [ ] Open the add-on's **Inspect** console to watch for errors
 
-## Round 6: the remaining settings items and tag suggestions
+## Round 7: native look and theme following
+
+The sidebar, menus, toast and settings were restyled to look like Firefox and follow the installed theme.
+I checked them in headless Chromium; this round checks real Firefox.
+
+- [ ] `about:debugging` → **Reload** on Image Collector (needed: new `theme` permission)
+
+### Default themes
+- [ ] about:addons → Themes → **Light**: sidebar background, search field and menus look like Firefox's own
+- [ ] Switch to **Dark** with the sidebar open: it follows without reopening
+- [ ] Toolbar is one row: search, calendar (date filter), view toggle, gear
+- [ ] Calendar button opens a menu; picking "Last 7 days" shows a blue "Last 7 days ×" pill; the pill clears it
+- [ ] Day headings fold and unfold when clicked
+- [ ] List view: "3× collected" appears in the text, not over the thumbnail
+
+### An add-on theme
+- [ ] Install any colorful theme from addons.mozilla.org (for example one with a purple or green sidebar)
+- [ ] The sidebar, search field, ⋯ menus and the bottom notices take the theme's colors
+- [ ] The on-page toast after a capture uses the theme's popup colors
+- [ ] Switch back to the default theme: the sidebar returns to the Firefox colors
+
+### Settings page
+- [ ] Looks like Firefox Settings (about:preferences), in light and dark
+
+### Report back
+- [ ] Screenshots of the sidebar in one default theme and one add-on theme, and anything that looks off
+
+## Round 6 results (done)
 
 First `about:debugging` → **Reload** on Image Collector.
 
