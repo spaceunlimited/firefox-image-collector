@@ -17,7 +17,19 @@ const els = {
   empty: $('empty'),
   noResults: $('no-results'),
   count: $('count'),
+  notice: $('notice'),
+  openSettings: $('open-settings'),
 };
+
+let noticeTimer = null;
+function notify(text, ms = 5000) {
+  els.notice.textContent = text;
+  els.notice.hidden = false;
+  clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(() => {
+    els.notice.hidden = true;
+  }, ms);
+}
 
 const state = {
   entries: [],
@@ -95,8 +107,19 @@ els.list.addEventListener('click', (e) => {
   if (!thumb) return;
   const entry = state.byId.get(thumb.closest('.card').dataset.id);
   const pageUrl = entry && latestCapture(entry)?.pageUrl;
-  if (pageUrl) browser.tabs.create({ url: pageUrl }).catch((err) => console.warn('[sidebar] cannot open', pageUrl, err));
+  if (!pageUrl) {
+    notify('No source page was recorded for this image.');
+  } else if (/^(file|about|chrome|resource|moz-extension):/.test(pageUrl)) {
+    notify(`Firefox doesn't let extensions open this kind of page: ${pageUrl}`, 8000);
+  } else {
+    browser.tabs.create({ url: pageUrl }).catch((err) => {
+      console.warn('[sidebar] cannot open', pageUrl, err);
+      notify(`Couldn't open ${pageUrl}`);
+    });
+  }
 });
+
+els.openSettings.addEventListener('click', () => browser.runtime.openOptionsPage());
 
 // Re-read when entries change in any context (captures from the background, other windows).
 let reloadTimer = null;
