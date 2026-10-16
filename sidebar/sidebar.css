@@ -201,7 +201,7 @@ body[data-view=list] .count-badge { display: none; }
 body[data-view=list] .warn { top: 2px; left: 2px; width: 16px; min-width: 16px; height: 16px; }
 body[data-view=list] .warn svg { width: 10px; height: 10px; }
 body[data-view=list] .thumb.no-thumb::after { width: 18px; height: 18px; }
-body[data-view=grid] .times { display: none; }
+body[data-view=grid] .times, body[data-view=grid] .time, body[data-view=list] .time-short { display: none; }
 body[data-view=list] .info { padding: 0; }
 body[data-view=list] .domain { font-size: 11px; color: var(--ic-muted); }
 body[data-view=list] .meta { justify-content: flex-start; gap: 10px; }

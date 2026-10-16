@@ -30,6 +30,21 @@ export function relativeTime(ts, now = Date.now()) {
   return '';
 }
 
+// Compact form for narrow tiles: "now", "14m", "3h", "2d", "5w", "4mo", "1y".
+export function shortRelativeTime(ts, now = Date.now()) {
+  const diff = Math.max(0, now - ts);
+  if (diff < 45_000) return 'now';
+  const min = Math.round(diff / 60_000);
+  if (min < 60) return `${min}m`;
+  const h = Math.round(diff / 3_600_000);
+  if (h < 24) return `${h}h`;
+  const d = Math.round(diff / 86_400_000);
+  if (d < 7) return `${d}d`;
+  if (d < 30) return `${Math.round(d / 7)}w`;
+  if (d < 365) return `${Math.round(d / 30)}mo`;
+  return `${Math.round(d / 365)}y`;
+}
+
 export function absoluteTime(ts) {
   return new Date(ts).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 }

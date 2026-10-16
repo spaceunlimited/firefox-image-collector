@@ -1,6 +1,6 @@
 // DOM rendering for the sidebar. All user data goes through textContent or attributes.
 import { domainOf } from '../shared/url.js';
-import { formatDims, relativeTime, absoluteTime, FAILURE_TEXT } from '../shared/format.js';
+import { formatDims, relativeTime, shortRelativeTime, absoluteTime, FAILURE_TEXT } from '../shared/format.js';
 import { latestCapture } from './model.js';
 
 const cardTemplate = document.getElementById('card-tpl');
@@ -59,7 +59,7 @@ export function renderCard(entry, { thumbs, now }) {
   const thumbBtn = card.querySelector('.thumb');
   if (entry.hasThumb) {
     thumbs.observe(img, entry.id);
-  } else if (entry.kind === 'http' && entry.urls[0]) {
+  } else if (entry.kind === 'http' && /^https?:/i.test(entry.urls[0] ?? '')) {
     // No stored thumbnail (copy failed): show the live image if it still loads.
     img.loading = 'lazy';
     img.referrerPolicy = 'no-referrer';
@@ -94,6 +94,12 @@ export function renderCard(entry, { thumbs, now }) {
   time.dataset.ts = String(entry.lastCapturedAt);
   time.textContent = relativeTime(entry.lastCapturedAt, now);
   time.title = absoluteTime(entry.lastCapturedAt);
+  const short = card.querySelector('.time-short');
+  short.dateTime = time.dateTime;
+  short.dataset.ts = time.dataset.ts;
+  short.dataset.format = 'short';
+  short.textContent = shortRelativeTime(entry.lastCapturedAt, now);
+  short.title = time.title;
   card.querySelector('.domain').textContent = domain;
   card.querySelector('.title').textContent = last?.pageTitle || '';
   const tags = card.querySelector('.tags');
@@ -108,7 +114,8 @@ export function renderCard(entry, { thumbs, now }) {
 
 export function refreshTimes(container, now = Date.now()) {
   for (const el of container.querySelectorAll('time[data-ts]')) {
-    el.textContent = relativeTime(Number(el.dataset.ts), now);
+    const ts = Number(el.dataset.ts);
+    el.textContent = el.dataset.format === 'short' ? shortRelativeTime(ts, now) : relativeTime(ts, now);
   }
 }
 
