@@ -78,6 +78,9 @@ export function renderCard(entry, { thumbs, now }) {
     count.hidden = false;
     count.textContent = `${entry.captures.length}×`;
     count.title = `Collected ${entry.captures.length} times`;
+    const times = card.querySelector('.times');
+    times.hidden = false;
+    times.textContent = `${entry.captures.length}× collected`;
   }
   if (entry.lastCopy?.status === 'failed') {
     const warn = card.querySelector('.warn');

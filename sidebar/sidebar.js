@@ -98,19 +98,18 @@ async function reload() {
   }
 }
 
+// Shows the stored copy or thumbnail at once, then swaps in the full image once it has loaded.
 async function loadPreview(entry, img) {
   img.alt = latestCapture(entry)?.pageTitle || 'Collected image';
-  const fallback = async () => {
-    const src = (entry.hasFull && (await store.getFull(entry.id))) || (await store.getThumbs([entry.id]))[entry.id];
-    if (src) img.src = src;
+  const stored = (entry.hasFull && (await store.getFull(entry.id))) || (await store.getThumbs([entry.id]))[entry.id];
+  if (stored) img.src = stored;
+  if (entry.kind !== 'http' || !entry.urls[0] || entry.hasFull) return;
+  const full = img.ownerDocument.createElement('img');
+  full.referrerPolicy = 'no-referrer';
+  full.onload = () => {
+    if (img.isConnected) img.src = full.src;
   };
-  if (entry.kind === 'http' && entry.urls[0]) {
-    img.referrerPolicy = 'no-referrer';
-    img.addEventListener('error', fallback, { once: true });
-    img.src = entry.urls[0];
-  } else {
-    fallback();
-  }
+  full.src = entry.urls[0];
 }
 
 // ---------- actions ----------
