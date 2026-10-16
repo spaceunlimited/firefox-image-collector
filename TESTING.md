@@ -17,7 +17,24 @@ Check items off by changing `[ ]` to `[x]`. Note failures under the item.
 - [ ] Open the sidebar with the toolbar button
 - [ ] Open the add-on's **Inspect** console to watch for errors
 
-## Round 5: card actions, details, tags, settings
+## Round 6: the remaining settings items and tag suggestions
+
+First `about:debugging` → **Reload** on Image Collector.
+
+### Tag suggestions (now chips instead of a dropdown)
+- [ ] Give one image a tag. Open **Edit tags** on another image: existing tags show as "+ tag" chips under the field
+- [ ] Typing filters the chips; clicking one adds that tag
+
+### Settings (gear button)
+- [ ] No confirmation box is visible until you click a button that needs one
+- [ ] **Export JSON** first, as a backup
+- [ ] **Delete all images…** shows a confirmation; **Delete all** empties the sidebar and the empty-state hint shows
+- [ ] **Import** that JSON file: all cards come back with thumbnails and tags
+- [ ] Import the same file again: "Added 0 images, merged N", no duplicates
+- [ ] Automatic cleanup: choosing a period either says "Nothing to delete right now" or asks first how many it will delete
+- [ ] Storage shows the number of images and space used
+
+## Round 5 results (done)
 
 New since round 4: a ⋯ menu on every card, a details view, tags, delete with Undo, re-copy, and a full
 settings page. Any page works for these tests, including real websites.
