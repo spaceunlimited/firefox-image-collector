@@ -31,17 +31,17 @@ If it starts with `file:///`, or the page shows a red banner, click the link in 
 - [ ] `about:debugging` → **Reload** on Image Collector
 
 ### T1. Lazy image: `http://localhost:8000/responsive.html`
-- [ ] Right-click the pink box → **Copy Image + Collect**. Card shows pink "Lazy real image", 640 × 400
+- [ X] Right-click the pink box → **Copy Image + Collect**. Card shows pink "Lazy real image", 640 × 400 | does not show pink image, just orange label - toast: save+not copied
 
 ### T2. srcset: same page, first image
-- [ ] Capture it. The newest card shows "srcset 640w" or "srcset 320w". Which one?
+- [ X] Capture it. The newest card shows "srcset 640w" or "srcset 320w". Which one? this shows srcset 640w but thumbnail is broken, zoomed in
 
 ### T3. Frames: `http://localhost:8000/frames.html`
-- [ ] Capture the image in the first box: copies, card has a thumbnail
-- [ ] Capture the image in the second box: copies, and merges with the first into one card showing ×2
+- [ X] Capture the image in the first box: copies, card has a thumbnail | no thumbnail, copy failed
+- [ X] Capture the image in the second box: copies, and merges with the first into one card showing ×2 | does not merge, shows it's own 
 
 ### T4. Huge WebP: `http://localhost:8000/huge.html`, second (green) image
-- [ ] Toast ends with "Copied (reduced size) & saved"
+- [X ] Toast ends with "Copied (reduced size) & saved" | never says anything about reduced, also doesn't matter, lets move oin.
 - [ ] Paste the `[capture] done` line: it should start with `imageUrl: "http://localhost:8000/`
 
 ## Round 3 results (done)
