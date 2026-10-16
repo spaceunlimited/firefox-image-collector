@@ -1,6 +1,6 @@
 // Toolbar badge flash and on-page toast.
 import { showToast } from '../content/probe.js';
-import { themeVars } from '../shared/theme.js';
+import { chooseVars } from '../shared/theme.js';
 
 const BADGE = {
   ok: { text: '✓', color: '#16a34a' },
@@ -28,7 +28,7 @@ async function popupColors(tabId) {
   try {
     const tab = await browser.tabs.get(tabId);
     const { colors } = (await browser.theme.getCurrent(tab.windowId)) ?? {};
-    const vars = themeVars(colors);
+    const vars = chooseVars(colors, globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches ?? null);
     if (!vars['--ic-popup']) return null;
     return { bg: vars['--ic-popup'], text: vars['--ic-popup-text'] ?? null, border: vars['--ic-popup-border'] ?? null };
   } catch {

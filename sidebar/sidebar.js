@@ -103,7 +103,7 @@ async function loadPreview(entry, img) {
   img.alt = latestCapture(entry)?.pageTitle || 'Collected image';
   const stored = (entry.hasFull && (await store.getFull(entry.id))) || (await store.getThumbs([entry.id]))[entry.id];
   if (stored) img.src = stored;
-  if (entry.kind !== 'http' || !entry.urls[0] || entry.hasFull) return;
+  if (entry.kind !== 'http' || !/^https?:/i.test(entry.urls[0] ?? '') || entry.hasFull) return;
   const full = img.ownerDocument.createElement('img');
   full.referrerPolicy = 'no-referrer';
   full.onload = () => {
