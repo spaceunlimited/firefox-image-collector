@@ -47,7 +47,19 @@ export function installFakeBrowser({ failSetWhen } = {}) {
   const calls = { tabsCreate: [], messages: [], openOptions: 0 };
   const permListeners = { added: new Set(), removed: new Set() };
   let granted = true;
+  const themeListeners = new Set();
   const api = {
+    theme: {
+      current: {},
+      getCurrent: async () => structuredClone(api.theme.current),
+      onUpdated: { addListener: (fn) => themeListeners.add(fn) },
+      // Test helper: switch theme and notify listeners like Firefox does.
+      set(info) {
+        api.theme.current = info;
+        for (const fn of themeListeners) fn({ theme: info });
+      },
+    },
+    windows: { getCurrent: async () => ({ id: 1 }) },
     permissions: {
       contains: async () => granted,
       async request() {
