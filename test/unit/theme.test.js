@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { themeVars, parseColor, isDark, chooseVars, colorAlpha } from '../../shared/theme.js';
+import { themeVars, parseColor, isDark, chooseVars, colorAlpha, usableAccent, contrast } from '../../shared/theme.js';
 
 test('themeVars maps theme keys with fallbacks and skips missing ones', () => {
   assert.deepEqual(themeVars({}), {});
@@ -9,7 +9,7 @@ test('themeVars maps theme keys with fallbacks and skips missing ones', () => {
   assert.equal(vars['--ic-bg'], '#123456');
   assert.equal(vars['--ic-text'], 'white');
   assert.equal(vars['--ic-popup'], 'rgb(10, 20, 30)');
-  assert.equal(vars['--ic-accent'], 'rgb(1, 2, 3)');
+  assert.equal(vars['--ic-accent'], undefined); // near-black is not a usable accent
   assert.equal('--ic-field' in vars, false);
   assert.equal(themeVars({ sidebar: '#fff', toolbar: '#000' })['--ic-bg'], '#fff');
 });
@@ -27,6 +27,14 @@ test('parseColor and isDark', () => {
 
 // Ash (nova-ash@mozilla.org) light colors, as theme.getCurrent() returns them even in dark mode.
 const ASH_LIGHT = { frame: [239, 237, 242], toolbar: [255, 255, 255, 0.4], sidebar: [255, 255, 255], sidebar_text: [18, 17, 20], toolbar_field: [255, 255, 255] };
+
+test('chooseVars uses the known dark colors of Nova themes like Ash', () => {
+  const ash = { frame: [239, 237, 242], sidebar: [255, 255, 255], toolbar_field: [255, 255, 255], tab_line: [183, 182, 186], sidebar_text: [18, 17, 20] };
+  const vars = chooseVars(ash, true);
+  assert.equal(vars['--ic-bg'], 'rgb(29, 27, 31)');
+  assert.equal(vars['--ic-text'], 'rgb(252, 251, 255)');
+  assert.equal(chooseVars(ash, false)['--ic-bg'], 'rgb(255, 255, 255)');
+});
 
 test('chooseVars drops light colors when Firefox is dark, and the reverse', () => {
   assert.deepEqual(chooseVars(ASH_LIGHT, true), {});
@@ -59,4 +67,14 @@ test('a field the same color as the background gets a visible tint', () => {
   const vars = themeVars({ sidebar: [255, 255, 255], sidebar_text: [18, 17, 20], toolbar_field: [255, 255, 255] });
   assert.match(vars['--ic-field'], /^color-mix/);
   assert.equal(themeVars({ sidebar: '#ffffff', toolbar_field: '#e0e0e6' })['--ic-field'], '#e0e0e6');
+});
+
+test('gray or unreadable accents are dropped, colorful ones kept', () => {
+  assert.equal(usableAccent('rgb(103, 102, 106)', 'rgb(29, 27, 31)'), false); // Ash dark tab_line
+  assert.equal(usableAccent('#b89cff', 'rgb(29, 27, 31)'), true);
+  assert.equal(usableAccent('#ffeb3b', '#ffffff'), false); // yellow on white: too little contrast
+  assert.ok(contrast('#000', '#fff') > 20);
+  const vars = themeVars({ sidebar: '#1d1b1f', sidebar_text: '#fcfbff', tab_line: 'rgb(103, 102, 106)' });
+  assert.equal('--ic-accent' in vars, false);
+  assert.equal(themeVars({ sidebar: '#271d38', tab_line: '#c084fc' })['--ic-accent'], '#c084fc');
 });
