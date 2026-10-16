@@ -1,0 +1,20 @@
+<!doctype html><meta charset="utf-8"><title>Responsive · fixtures</title><style>body{font:14px system-ui;margin:24px;max-width:900px}figure{display:inline-block;margin:0 16px 24px 0;vertical-align:top}figcaption{font-size:12px;color:#555;max-width:320px}img{max-width:320px;border:1px solid #ddd}h2{margin-top:32px}</style>
+<h1>Responsive and lazy images</h1>
+<figure>
+  <img src="img/responsive-320.jpg" srcset="img/responsive-320.jpg 320w, img/responsive-640.jpg 640w, img/responsive-1280.jpg 1280w" sizes="320px">
+  <figcaption>srcset at 320px slot: on a Retina screen expect the 640w file, which the label inside the image shows</figcaption>
+</figure>
+<figure>
+  <picture>
+    <source srcset="img/picture.avif" type="image/avif">
+    <source srcset="img/picture.webp" type="image/webp">
+    <img src="img/picture.jpg">
+  </picture>
+  <figcaption>&lt;picture&gt;: expect the AVIF source to be collected, not the JPEG fallback</figcaption>
+</figure>
+<figure>
+  <img src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" data-src="img/lazy-real.jpg" width="320" height="200" style="background:#fce7f3">
+  <figcaption>Lazy-load placeholder (1×1 GIF) with data-src: expect lazy-real.jpg to be collected</figcaption>
+</figure>
+<div style="height:150vh"></div>
+<figure><img src="img/responsive-1280.jpg" loading="lazy"><figcaption>Native loading="lazy" far below the fold</figcaption></figure>
