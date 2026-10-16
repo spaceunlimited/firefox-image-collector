@@ -8,7 +8,7 @@
   <script type="module" src="options.js"></script>
 </head>
 <body>
-  <h1>Image Collector settings</h1>
+  <h1>Image Collector</h1>
 
   <section>
     <h2>Site access</h2>
@@ -36,7 +36,7 @@
     </div>
     <div id="auto-delete-confirm" class="confirm" hidden>
       <span class="confirm-text"></span>
-      <button type="button" class="danger" data-confirm="yes">Delete and turn on</button>
+      <button type="button" class="danger-solid" data-confirm="yes">Delete and turn on</button>
       <button type="button" data-confirm="no">Cancel</button>
     </div>
     <p id="auto-delete-msg" class="msg" role="status"></p>
@@ -46,7 +46,7 @@
     <h2>Export</h2>
     <p>JSON is a full backup including thumbnails and tags. CSV has one row per capture, for spreadsheets.</p>
     <div class="row">
-      <button id="export-json" type="button">Export JSON</button>
+      <button id="export-json" class="primary" type="button">Export JSON</button>
       <button id="export-csv" type="button">Export CSV</button>
     </div>
     <p id="export-msg" class="msg" role="status"></p>
@@ -72,7 +72,7 @@
     <button id="clear-all" type="button" class="danger">Delete all images…</button>
     <div id="clear-confirm" class="confirm" hidden>
       <span class="confirm-text"></span>
-      <button type="button" class="danger" data-confirm="yes">Delete all</button>
+      <button type="button" class="danger-solid" data-confirm="yes">Delete all</button>
       <button type="button" data-confirm="no">Cancel</button>
     </div>
     <p id="clear-msg" class="msg" role="status"></p>
