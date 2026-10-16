@@ -10,7 +10,7 @@
       "data_collection_permissions": { "required": ["none"] }
     }
   },
-  "permissions": ["menus", "clipboardWrite", "storage", "unlimitedStorage", "scripting", "activeTab"],
+  "permissions": ["menus", "clipboardWrite", "storage", "unlimitedStorage", "scripting", "activeTab", "theme"],
   "host_permissions": ["<all_urls>"],
   "background": { "scripts": ["background/background.js"], "type": "module" },
   "action": {
