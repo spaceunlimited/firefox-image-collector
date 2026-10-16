@@ -12,6 +12,7 @@
     "fixtures": "python3 -m http.server 8000 --directory test/fixtures"
   },
   "devDependencies": {
+    "jsdom": "^29.1.1",
     "web-ext": "^10.8.0"
   }
 }
