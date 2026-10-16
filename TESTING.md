@@ -23,40 +23,44 @@ Round 2 ran on pages opened as local files (`file:///…`). Firefox gives extens
 there, so several results were misleading. This round reruns those through the server.
 
 **Before you start**
-- [ ] In a terminal: `cd ~/Documents/Private/Explorations/image-collector && npm run fixtures`, leave it running
-- [ ] In Firefox, type `http://localhost:8000/` into the address bar. Don't double-click the HTML files.
-  If a page shows a red banner, it was opened as a file.
-- [ ] `about:debugging` → **Reload** on Image Collector, and open its **Inspect** console
-- [ ] Ignore the cards from earlier rounds; deleting cards arrives in the next step
+- [ X] In a terminal: `cd ~/Documents/Private/Explorations/image-collector && npm run fixtures`, leave it running
+- [ X] In Firefox, type `http://localhost:8000/` into the address bar. Don't double-click the HTML files.
+  If a page shows a red banner, it was opened as a file. | no red banner
+- [ X] `about:debugging` → **Reload** on Image Collector, and open its **Inspect** console
+- [ X] Ignore the cards from earlier rounds; deleting cards arrives in the next step
 
 ### S1. Lazy placeholder: `http://localhost:8000/responsive.html`, the pink box
-- [ ] Card shows a pink "Lazy real image", 640 × 400
+- [X] Card shows a pink "Lazy real image", 640 × 400 | this page shows a red banner
 
 ### S2. srcset: same page, first image
-- [ ] The **newest** card (top left under "Today") shows text "srcset 640w" or "srcset 320w". Which one?
+- [ -] The **newest** card (top left under "Today") shows text "srcset 640w" or "srcset 320w". Which one? none
 
 ### S3. Frames: `http://localhost:8000/frames.html`
-- [ ] First box image copies, with a thumbnail
-- [ ] Second box image copies
-- [ ] Both merge into one card with ×2
+- [ -] First box image copies, with a thumbnail | no thumbnail
+- [ X] Second box image copies
+- [ -] Both merge into one card with ×2 | does not merge
 
 ### S4. Huge WebP: `http://localhost:8000/huge.html`, second image
-- [ ] Grey "Copying image…" toast, then "Copied at reduced size & collected"
-- [ ] Paste the `[capture] done` line here:
+- [ - ] Grey "Copying image…" toast, then "Copied at reduced size & collected" | no grey copying image, and success message is just copied and collected
+- [ X] Paste the `[capture] done` line here: [capture] done 
+Object { ms: 951, imageUrl: "file:///Users/gregorfinger/Documents/Private/Explorations/image-collector/test/fixtures/img/huge.webp", copied: true, reason: undefined, mime: "image/png", dims: (2) […], scaled: false }
 
 ### S5. Without site access (uses the new settings switch)
-- [ ] Sidebar → gear button → **Turn off** under Site access. Status should say "Not allowed".
+- [ X] Sidebar → gear button → **Turn off** under Site access. Status should say "Not allowed".
 - [ ] Reload `frames.html`, capture the grey "Cross-origin" image. Expected: orange "!" on the card and a
   toast saying it was saved but not copied, with a hint about site access.
-- [ ] Back in settings, **Allow access to all websites**. Firefox asks to confirm. Status says "Allowed".
+- [ X] Back in settings, **Allow access to all websites**. Firefox asks to confirm. Status says "Allowed". | give orange mssage, too long to read but saves image
 
 ### S6. Private window
+THIS CAN NOT BE TESTED!!!!!!!!!!!!!!
+
 - [ ] about:addons → Image Collector → set **Run in Private Windows** to Allow
 - [ ] Open a private window (⌘⇧P), go to `http://localhost:8000/formats.html`, right-click an image.
   Is **Copy Image + Collect** in the menu?
 - [ ] If yes, capture: toast "Copied (not collected in private windows)", and no new card
 
 ### S7. Wake-up after idle
+
 
 "Stopped" on the about:debugging card after a few seconds is **expected**. Firefox pauses the
 background to save memory, and the menu click should restart it. This test checks exactly that.
@@ -118,7 +122,7 @@ at the bottom. Right-click each image directly and choose **Copy Image + Collect
 Converting these takes a few seconds. A grey "Copying image…" toast should now appear while it works.
 
 - [ X] Green 8000 × 6000 WebP (second image): final toast says "Copied at reduced size & collected" | only says copied and collected
-- [ ] Its card shows 8000 × 6000 and no orange "!"
+- [ X] Its card shows 8000 × 6000 and no orange "!"
 - [ X] Copy the `[capture] done` line for this image from the console here: [capture] done 
 Object { ms: 887, imageUrl: "file:///Users/gregorfinger/Documents/Private/Explorations/image-collector/test/fixtures/img/huge.webp", copied: true, reason: undefined, mime: "image/png", dims: (2) […], scaled: false }
 capture.js:183:11
@@ -138,10 +142,11 @@ Temporary add-ons may already be allowed in private windows.
 Firefox unloads the extension's background when it is idle. That is normal: the menu click should
 start it again on its own, without touching about:debugging.
 
-- [ ] Leave Firefox alone for 2 minutes. On the about:debugging card, the background may show as stopped. | again, the extension automatically stopps running after a just a few seconds not being used.
-- [ ] Without clicking anything in about:debugging, right-click an image → **Copy Image + Collect**.
-- [ ] Does the menu item appear? Is there a toast? Does a card appear?
-- [ ] Copy any console lines that appear here (expected: `[background] started`, then `[background] menu click`):
+- [ X] Leave Firefox alone for 2 minutes. On the about:debugging card, the background may show as stopped. | again, the extension automatically stopps running after a just a few seconds not being used.
+- [ X] Without clicking anything in about:debugging, right-click an image → **Copy Image + Collect**.
+- [ X] Does the menu item appear? Is there a toast? Does a card appear? | still seems to work but image gets an orange label
+- [ ] Copy any console lines that appear here (expected: `[background] started`, then `[background] menu click`): [capture] done 
+Object { ms: 16, imageUrl: "file:///Users/gregorfinger/Documents/Private/Explorations/image-collector/test/fixtures/img/photo.png", copied: false, reason: "cors", mime: undefined, dims: (2) […], scaled: undefined }
 
 ### R9. Thumbnail click on `formats.html` cards
 
