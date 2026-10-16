@@ -33,3 +33,75 @@ export function showToast(text, variant) {
     setTimeout(() => host.remove(), 200);
   }, variant === 'warn' ? 4000 : 2000);
 }
+
+// Reads what the page knows about the right-clicked image. Must run immediately:
+// targetElementId expires when another context menu opens.
+export function probeImage(targetId) {
+  const el = browser.menus.getTargetElement(targetId);
+  if (!el) return null;
+  const img = el instanceof HTMLImageElement ? el : el.closest?.('img');
+  const rect = el.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const base = document.baseURI;
+  const abs = (u) => {
+    try {
+      return u ? new URL(u, base).href : null;
+    } catch {
+      return null;
+    }
+  };
+  const largest = (srcset) => {
+    let best = null;
+    let score = -1;
+    for (const part of (srcset || '').split(/,\s+/)) {
+      const [u, d = '1x'] = part.trim().split(/\s+/);
+      const s = parseFloat(d) || 1;
+      if (u && s > score) {
+        score = s;
+        best = u;
+      }
+    }
+    return best;
+  };
+  const ds = img?.dataset ?? {};
+  return {
+    currentSrc: img?.currentSrc || null,
+    naturalWidth: img?.naturalWidth ?? 0,
+    naturalHeight: img?.naturalHeight ?? 0,
+    renderedWidth: Math.round(rect.width * dpr),
+    renderedHeight: Math.round(rect.height * dpr),
+    lazySrc: abs(ds.src || ds.lazySrc || ds.original || largest(ds.srcset || ds.lazySrcset)),
+  };
+}
+
+// Fallback when the background cannot fetch the bytes: read a blob: URL from inside
+// the page, or draw the loaded element to a canvas. Cross-origin images taint the canvas.
+export async function extractImage(targetId, url) {
+  const toDataUrl = (blob) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  if (url && url.startsWith('blob:')) {
+    try {
+      const res = await fetch(url);
+      return { dataUrl: await toDataUrl(await res.blob()) };
+    } catch {
+      // Fall through to the canvas path.
+    }
+  }
+  const el = browser.menus.getTargetElement(targetId);
+  const img = el instanceof HTMLImageElement ? el : el?.closest?.('img');
+  if (!img || !img.complete || !img.naturalWidth) return { error: 'notloaded' };
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    canvas.getContext('2d').drawImage(img, 0, 0);
+    return { dataUrl: canvas.toDataURL('image/png') };
+  } catch (e) {
+    return { error: e?.name === 'SecurityError' ? 'tainted' : 'draw' };
+  }
+}
