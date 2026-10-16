@@ -242,6 +242,16 @@ export function updateEntry(id, mutate) {
   });
 }
 
+// Stores a thumbnail for an entry that has none yet (e.g. after a successful re-copy).
+export function saveThumb(id, thumb) {
+  return withLock(async () => {
+    const entry = await getEntry(id);
+    if (!entry) return;
+    entry.hasThumb = true;
+    await area().set({ [entryKey(id)]: entry, [thumbKey(id)]: thumb });
+  });
+}
+
 // Deletes an entry and returns everything needed to restore it.
 export function removeEntry(id) {
   return withLock(async () => {

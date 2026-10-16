@@ -2,6 +2,7 @@
 // so Firefox can wake this page for them after it has been unloaded.
 import { flashBadge, toast } from './feedback.js';
 import { captureFromMenu } from './capture.js';
+import { recopy } from './recopy.js';
 import { ensureSchema, getSettings, purgeOlderThan } from '../shared/store.js';
 
 const MENU_ID = 'copy-and-collect';
@@ -46,6 +47,17 @@ browser.menus.onClicked.addListener((info, tab) => {
       flashBadge(tab.id, 'warn');
       toast(tab.id, 'Something went wrong. See the add-on console.', 'warn');
     });
+});
+
+// Requests from the sidebar for work that needs the clipboard or privileged fetches.
+browser.runtime.onMessage.addListener((msg) => {
+  if (msg?.type === 'recopy') {
+    return recopy(msg.id).catch((e) => {
+      console.error('[recopy] failed', e);
+      return { ok: false, reason: 'unknown' };
+    });
+  }
+  return undefined;
 });
 
 browser.runtime.onStartup.addListener(() => {
