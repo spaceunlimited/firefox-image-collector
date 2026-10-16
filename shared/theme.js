@@ -1,5 +1,6 @@
 // Applies the installed Firefox theme's colors to an extension page as CSS custom properties.
 // Built-in themes report no colors; the stylesheet's light/dark defaults cover those.
+import { FINGERPRINT_KEYS, NOVA_DARK } from './nova-themes.js';
 
 const toCss = (v) => {
   if (typeof v === 'string' && v.trim()) return v.trim();
@@ -58,11 +59,54 @@ export function themeVars(colors) {
     const v = pick(colors, keys, { opaque: OPAQUE.has(name) });
     if (v) out[name] = v;
   }
+  // Many themes (all of Mozilla's Nova themes) use gray for tab_line and focus colors. A gray
+  // or low-contrast accent makes buttons and links unreadable, so keep the default accent then.
+  for (const name of ['--ic-accent', '--ic-focus']) {
+    if (out[name] && !usableAccent(out[name], out['--ic-bg'])) delete out[name];
+  }
   // A field the same color as the sidebar is invisible there (e.g. white on white).
   if (out['--ic-field'] && out['--ic-bg'] && colorDistance(out['--ic-field'], out['--ic-bg']) < 12) {
     out['--ic-field'] = 'color-mix(in srgb, var(--ic-text) 7%, var(--ic-bg))';
   }
   return out;
+}
+
+function luminance(rgb) {
+  const [r, g, b] = rgb.map((v) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+// WCAG contrast ratio (1–21); null if either color can't be parsed.
+export function contrast(a, b) {
+  const x = parseColor(a);
+  const y = parseColor(b);
+  if (!x || !y) return null;
+  const [l1, l2] = [luminance(x), luminance(y)].sort((m, n) => n - m);
+  return (l1 + 0.05) / (l2 + 0.05);
+}
+
+// HSL saturation (0–1); null if unparseable.
+export function saturation(css) {
+  const rgb = parseColor(css);
+  if (!rgb) return null;
+  const [r, g, b] = rgb.map((v) => v / 255);
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return 0;
+  return (max - min) / (1 - Math.abs(2 * l - 1));
+}
+
+// An accent must be clearly colored and readable on the background (3:1, the WCAG UI minimum).
+export function usableAccent(accent, bg) {
+  const sat = saturation(accent);
+  if (sat === null || sat < 0.3) return false;
+  if (!bg) return true;
+  const ratio = contrast(accent, bg);
+  return ratio === null || ratio >= 3;
 }
 
 // Rough RGB distance (0–441); Infinity if either color can't be parsed.
@@ -109,7 +153,15 @@ export function chooseVars(colors, prefersDark) {
   const bg = vars['--ic-bg'];
   if (!bg || prefersDark == null) return vars;
   const dark = isDark(bg);
-  return dark === null || dark === prefersDark ? vars : {};
+  if (dark === null || dark === prefersDark) return vars;
+  // Mozilla's Nova themes: we know their dark colors.
+  const known = prefersDark ? NOVA_DARK[themeFingerprint(colors)] : null;
+  return known ? themeVars(known) : {};
+}
+
+// Identifies a theme by a few of its light colors (see tools/gen-nova-themes.py).
+export function themeFingerprint(colors) {
+  return FINGERPRINT_KEYS.map((k) => toCss(colors?.[k]) ?? '').join('|');
 }
 
 export function applyVars(root, vars) {
