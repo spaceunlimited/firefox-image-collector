@@ -175,3 +175,15 @@ body.details-open { overflow: hidden; }
 .tag-remove { font: inherit; width: 18px; height: 18px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; }
 .tag-remove:hover { background: var(--border); color: var(--text); }
 .tag-input { flex: 1; min-width: 100px; font: inherit; border: 0; outline: none; background: transparent; color: inherit; padding: 2px 4px; }
+
+/* Missing site access banner */
+.banner {
+  display: flex; gap: 8px; align-items: center; margin: 8px 8px 0; padding: 6px 8px;
+  border: 1px solid var(--warn); border-radius: 6px; font-size: 12px; background: var(--surface);
+}
+.banner span { flex: 1; }
+.banner button {
+  font: inherit; padding: 2px 8px; border-radius: 4px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--bg); color: var(--text);
+}
+.banner .banner-close { border: 0; background: none; color: var(--muted); font-size: 16px; line-height: 1; padding: 0 4px; }

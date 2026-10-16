@@ -45,7 +45,24 @@ export function installFakeBrowser({ failSetWhen } = {}) {
     },
   };
   const calls = { tabsCreate: [], messages: [], openOptions: 0 };
+  const permListeners = { added: new Set(), removed: new Set() };
+  let granted = true;
   const api = {
+    permissions: {
+      contains: async () => granted,
+      async request() {
+        granted = true;
+        for (const fn of permListeners.added) fn();
+        return true;
+      },
+      async remove() {
+        granted = false;
+        for (const fn of permListeners.removed) fn();
+        return true;
+      },
+      onAdded: { addListener: (fn) => permListeners.added.add(fn) },
+      onRemoved: { addListener: (fn) => permListeners.removed.add(fn) },
+    },
     storage: {
       local,
       onChanged: { addListener: (fn) => listeners.add(fn), removeListener: (fn) => listeners.delete(fn) },

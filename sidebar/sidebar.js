@@ -1,6 +1,7 @@
 // Sidebar controller: state, events, actions, storage sync.
 import * as store from '../shared/store.js';
 import { FAILURE_TEXT } from '../shared/format.js';
+import { ALL_SITES, hasAllSites } from '../shared/permissions.js';
 import { filterEntries, groupByDay, tagCounts, latestCapture, canOpenImage } from './model.js';
 import { renderGroups, renderTagFilters, refreshTimes } from './view.js';
 import { ThumbLoader } from './thumbs.js';
@@ -22,6 +23,9 @@ const els = {
   empty: $('empty'),
   noResults: $('no-results'),
   count: $('count'),
+  banner: $('access-banner'),
+  grantAccess: $('grant-access'),
+  dismissBanner: $('dismiss-banner'),
 };
 
 const state = {
@@ -31,6 +35,8 @@ const state = {
   range: { kind: 'all' },
   tags: new Set(),
   view: 'grid',
+  hasAccess: true,
+  bannerDismissed: false,
 };
 
 const thumbs = new ThumbLoader((ids) => store.getThumbs(ids));
@@ -59,6 +65,13 @@ function render() {
   els.noResults.hidden = state.entries.length === 0 || visible.length > 0;
   const total = state.entries.length;
   els.count.textContent = total === 0 ? '' : visible.length === total ? `${total} images` : `${visible.length} of ${total}`;
+  const blocked = state.entries.some((e) => e.lastCopy?.status === 'failed' && e.lastCopy.reason === 'cors');
+  els.banner.hidden = state.hasAccess || state.bannerDismissed || !blocked;
+}
+
+async function refreshAccess() {
+  state.hasAccess = await hasAllSites().catch(() => true);
+  render();
 }
 
 async function reload() {
@@ -210,6 +223,21 @@ els.viewToggle.addEventListener('click', () => {
 
 els.openSettings.addEventListener('click', () => browser.runtime.openOptionsPage());
 
+// permissions.request must run directly in the click handler.
+els.grantAccess.addEventListener('click', () => {
+  browser.permissions
+    .request(ALL_SITES)
+    .then((granted) => notice.show(granted ? 'Site access allowed. Use Re-copy on failed images.' : 'Site access was not allowed.'))
+    .catch((e) => console.warn('[sidebar] permission request failed', e))
+    .finally(refreshAccess);
+});
+els.dismissBanner.addEventListener('click', () => {
+  state.bannerDismissed = true;
+  render();
+});
+browser.permissions.onAdded.addListener(refreshAccess);
+browser.permissions.onRemoved.addListener(refreshAccess);
+
 els.tagFilters.addEventListener('click', (e) => {
   const chip = e.target.closest('.chip');
   if (!chip) return;
@@ -276,6 +304,7 @@ async function boot() {
   const settings = await store.getSettings();
   applyView(settings.view);
   if (settings.autoDeleteDays) await store.purgeOlderThan(settings.autoDeleteDays);
+  state.hasAccess = await hasAllSites().catch(() => true);
   await reload();
 }
 
