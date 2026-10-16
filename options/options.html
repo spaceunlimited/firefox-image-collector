@@ -8,6 +8,8 @@
   <script type="module" src="options.js"></script>
 </head>
 <body>
+  <h1>Image Collector settings</h1>
+
   <section>
     <h2>Site access</h2>
     <p>
@@ -19,6 +21,61 @@
       <button id="access-toggle" type="button"></button>
     </div>
   </section>
-  <p class="muted">More settings (auto-delete, export and import, storage) are coming in a later step.</p>
+
+  <section>
+    <h2>Automatic cleanup</h2>
+    <div class="row">
+      <label for="auto-delete">Delete images last collected more than</label>
+      <select id="auto-delete">
+        <option value="">Never</option>
+        <option value="30">30 days ago</option>
+        <option value="90">90 days ago</option>
+        <option value="180">180 days ago</option>
+        <option value="365">1 year ago</option>
+      </select>
+    </div>
+    <div id="auto-delete-confirm" class="confirm" hidden>
+      <span class="confirm-text"></span>
+      <button type="button" class="danger" data-confirm="yes">Delete and turn on</button>
+      <button type="button" data-confirm="no">Cancel</button>
+    </div>
+    <p id="auto-delete-msg" class="msg" role="status"></p>
+  </section>
+
+  <section>
+    <h2>Export</h2>
+    <p>JSON is a full backup including thumbnails and tags. CSV has one row per capture, for spreadsheets.</p>
+    <div class="row">
+      <button id="export-json" type="button">Export JSON</button>
+      <button id="export-csv" type="button">Export CSV</button>
+    </div>
+    <p id="export-msg" class="msg" role="status"></p>
+  </section>
+
+  <section>
+    <h2>Import</h2>
+    <p>Imports a JSON export. Images already in the collection are merged, not duplicated.</p>
+    <div class="row">
+      <input id="import-file" type="file" accept=".json,application/json">
+    </div>
+    <p id="import-msg" class="msg" role="status"></p>
+  </section>
+
+  <section>
+    <h2>Storage</h2>
+    <p id="storage-info"></p>
+  </section>
+
+  <section>
+    <h2>Delete everything</h2>
+    <p>Removes all collected images. Settings are kept.</p>
+    <button id="clear-all" type="button" class="danger">Delete all images…</button>
+    <div id="clear-confirm" class="confirm" hidden>
+      <span class="confirm-text"></span>
+      <button type="button" class="danger" data-confirm="yes">Delete all</button>
+      <button type="button" data-confirm="no">Cancel</button>
+    </div>
+    <p id="clear-msg" class="msg" role="status"></p>
+  </section>
 </body>
 </html>

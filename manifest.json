@@ -23,6 +23,6 @@
     "default_icon": "icons/icon.svg",
     "open_at_install": true
   },
-  "options_ui": { "page": "options/options.html", "open_in_tab": false },
+  "options_ui": { "page": "options/options.html", "open_in_tab": true },
   "icons": { "48": "icons/icon.svg", "96": "icons/icon.svg" }
 }
