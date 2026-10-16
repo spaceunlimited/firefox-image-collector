@@ -6,6 +6,8 @@ import { ensureSchema, getSettings, purgeOlderThan } from '../shared/store.js';
 
 const MENU_ID = 'copy-and-collect';
 
+console.log('[background] started', new Date().toLocaleTimeString());
+
 // Applies the optional "delete entries older than N days" setting.
 async function applyRetention() {
   const { autoDeleteDays } = await getSettings();
@@ -26,6 +28,7 @@ browser.runtime.onInstalled.addListener(async () => {
 });
 
 browser.menus.onClicked.addListener((info, tab) => {
+  console.log('[background] menu click', info.menuItemId, info.srcUrl?.slice(0, 120));
   if (info.menuItemId !== MENU_ID || !tab) return;
   if (info.mediaType !== 'image' || !info.srcUrl) return;
   captureFromMenu(info, tab)
