@@ -2,9 +2,55 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
   <title>Image Collector</title>
+  <link rel="stylesheet" href="sidebar.css">
+  <script type="module" src="sidebar.js"></script>
 </head>
-<body>
-  <p>Right-click any image and choose <strong>Copy Image + Collect</strong>.</p>
+<body data-view="grid">
+  <header class="toolbar">
+    <div class="row">
+      <input id="search" type="search" placeholder="Search URL, site, title, tag" autocomplete="off" aria-label="Search">
+      <button id="view-toggle" class="icon-btn" type="button" aria-label="Switch to list view" title="Switch to list view">
+        <svg class="i-list" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v2H2zM2 7h12v2H2zM2 11h12v2H2z"/></svg>
+        <svg class="i-grid" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z"/></svg>
+      </button>
+    </div>
+    <div class="row">
+      <select id="date" aria-label="Date range">
+        <option value="all">All time</option>
+        <option value="today">Today</option>
+        <option value="7d">Last 7 days</option>
+        <option value="30d">Last 30 days</option>
+        <option value="custom">Custom range…</option>
+      </select>
+      <span id="count" class="muted"></span>
+    </div>
+    <div id="custom-range" class="row" hidden>
+      <label>From <input id="from" type="date"></label>
+      <label>To <input id="to" type="date"></label>
+    </div>
+    <div id="tag-filters" class="chips" hidden aria-label="Filter by tag"></div>
+  </header>
+
+  <main id="list" aria-live="polite"></main>
+  <p id="empty" class="state" hidden>Right-click any image and choose <strong>Copy Image + Collect</strong>.</p>
+  <p id="no-results" class="state" hidden>No images match these filters.</p>
+
+  <template id="card-tpl">
+    <article class="card">
+      <button class="thumb" type="button">
+        <img alt="" decoding="async">
+        <span class="warn badge" hidden aria-label="Copy failed">!</span>
+        <span class="count badge" hidden></span>
+      </button>
+      <div class="info">
+        <div class="domain"></div>
+        <div class="title"></div>
+        <div class="meta"><span class="dims"></span><time class="time"></time></div>
+        <div class="tags"></div>
+      </div>
+    </article>
+  </template>
 </body>
 </html>
