@@ -2,3 +2,11 @@
 <h1>Huge images</h1>
 <figure><img src="img/huge.png"><figcaption>9000 × 9000 PNG (81 MP, pass-through)</figcaption></figure>
 <figure><img src="img/huge.webp"><figcaption>8000 × 6000 WebP (48 MP): expect "Copied at reduced size"</figcaption></figure>
+<script>
+  if (location.protocol === 'file:') {
+    document.body.insertAdjacentHTML('afterbegin',
+      '<p style="background:#dc2626;color:#fff;padding:12px 16px;font-weight:bold;border-radius:6px">' +
+      'This page is open as a local file, so most tests give wrong results. ' +
+      'Run <code>npm run fixtures</code> and open http://localhost:8000/ instead.</p>');
+  }
+</script>

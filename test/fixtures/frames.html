@@ -7,3 +7,11 @@
 <iframe src="http://127.0.0.1:8000/frame-inner.html" width="460" height="320"></iframe>
 <h2>Cross-origin image without CORS headers</h2>
 <figure><img src="http://127.0.0.1:8000/img/cross-origin.jpg"><figcaption>Without "access to all sites": expect a saved card marked copy failed. With it: copies normally.</figcaption></figure>
+<script>
+  if (location.protocol === 'file:') {
+    document.body.insertAdjacentHTML('afterbegin',
+      '<p style="background:#dc2626;color:#fff;padding:12px 16px;font-weight:bold;border-radius:6px">' +
+      'This page is open as a local file, so most tests give wrong results. ' +
+      'Run <code>npm run fixtures</code> and open http://localhost:8000/ instead.</p>');
+  }
+</script>

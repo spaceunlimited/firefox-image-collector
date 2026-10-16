@@ -7,3 +7,11 @@
   <li><a href="frames.html">Frames and cross-origin</a>: same-origin iframe, cross-origin iframe, non-CORS image</li>
   <li><a href="huge.html">Huge images</a>: run <code>python3 test/make-fixtures.py --huge</code> first</li>
 </ul>
+<script>
+  if (location.protocol === 'file:') {
+    document.body.insertAdjacentHTML('afterbegin',
+      '<p style="background:#dc2626;color:#fff;padding:12px 16px;font-weight:bold;border-radius:6px">' +
+      'This page is open as a local file, so most tests give wrong results. ' +
+      'Run <code>npm run fixtures</code> and open http://localhost:8000/ instead.</p>');
+  }
+</script>
