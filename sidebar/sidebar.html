@@ -39,10 +39,70 @@
   <main id="list" aria-live="polite"></main>
   <p id="empty" class="state" hidden>Right-click any image and choose <strong>Copy Image + Collect</strong>.</p>
   <p id="no-results" class="state" hidden>No images match these filters.</p>
-  <div id="notice" class="notice" role="status" hidden></div>
+  <div id="notice" class="notice" role="status" hidden>
+    <span class="notice-text"></span>
+    <button class="notice-action" type="button" hidden></button>
+  </div>
+
+  <div id="card-menu" class="menu" role="menu" aria-label="Image actions" hidden>
+    <button type="button" role="menuitem" data-action="recopy">Re-copy image</button>
+    <button type="button" role="menuitem" data-action="open-image">Open image</button>
+    <button type="button" role="menuitem" data-action="open-page">Open source page</button>
+    <button type="button" role="menuitem" data-action="details">Details</button>
+    <button type="button" role="menuitem" data-action="tags">Edit tags</button>
+    <hr>
+    <button type="button" role="menuitem" data-action="delete" class="danger">Delete</button>
+  </div>
+
+  <aside id="details" class="details" aria-label="Image details" hidden></aside>
+
+  <template id="details-tpl">
+    <div class="details-inner">
+      <header class="details-head">
+        <button class="icon-btn details-close" type="button" aria-label="Close details" title="Close (Esc)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 2.1 8 6.6l4.5-4.5 1.4 1.4L9.4 8l4.5 4.5-1.4 1.4L8 9.4l-4.5 4.5-1.4-1.4L6.6 8 2.1 3.5z"/></svg>
+        </button>
+        <h2>Details</h2>
+      </header>
+      <div class="details-preview"><img alt=""></div>
+      <div class="details-actions">
+        <button type="button" data-action="recopy">Re-copy</button>
+        <button type="button" data-action="open-image">Open image</button>
+        <button type="button" data-action="open-page">Source page</button>
+        <button type="button" data-action="delete" class="danger">Delete</button>
+      </div>
+      <dl class="facts">
+        <dt>Size</dt><dd class="f-dims"></dd>
+        <dt>Format</dt><dd class="f-mime"></dd>
+        <dt>File size</dt><dd class="f-bytes"></dd>
+        <dt>First collected</dt><dd class="f-first"></dd>
+        <dt>Last collected</dt><dd class="f-last"></dd>
+        <dt>Copied</dt><dd class="f-copy"></dd>
+      </dl>
+      <section>
+        <h3>Tags</h3>
+        <div class="tag-editor">
+          <div class="tag-chips"></div>
+          <input class="tag-input" type="text" list="tag-suggestions" placeholder="Add tag, press Enter" aria-label="Add tag" autocomplete="off">
+          <datalist id="tag-suggestions"></datalist>
+        </div>
+      </section>
+      <section>
+        <h3>Image address</h3>
+        <ul class="url-list"></ul>
+      </section>
+      <section>
+        <h3>Found on <span class="capture-count muted"></span></h3>
+        <ol class="capture-list"></ol>
+      </section>
+    </div>
+  </template>
 
   <template id="card-tpl">
     <article class="card">
+      <button class="menu-btn" type="button" aria-haspopup="menu" aria-expanded="false" title="Actions">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="3" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="13" cy="8" r="1.5"/></svg>
+      </button>
       <button class="thumb" type="button">
         <img alt="" decoding="async">
         <span class="warn badge" hidden aria-label="Copy failed">!</span>

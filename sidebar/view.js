@@ -43,6 +43,7 @@ export function renderCard(entry, { thumbs, now }) {
   img.addEventListener('error', () => thumbBtn.classList.add('no-thumb'), { once: true });
   const domain = last ? domainOf(last.pageUrl) : '';
   thumbBtn.title = last ? `Open ${domain || 'source page'}` : '';
+  card.querySelector('.menu-btn').setAttribute('aria-label', `Actions for ${last?.pageTitle || domain || 'image'}`);
   img.alt = last?.pageTitle || domain || 'Collected image';
 
   if (entry.captures.length > 1) {

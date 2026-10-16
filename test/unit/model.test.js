@@ -60,3 +60,19 @@ test('tagCounts sorts by frequency then name', () => {
   const entries = [entry('a', now, { tags: ['b', 'a'] }), entry('b', now, { tags: ['b'] })];
   assert.deepEqual(tagCounts(entries), [['b', 2], ['a', 1]]);
 });
+
+test('normalizeTag', async () => {
+  const { normalizeTag, MAX_TAG_LENGTH } = await import('../../sidebar/model.js');
+  assert.equal(normalizeTag('  Mood   Board '), 'mood board');
+  assert.equal(normalizeTag('a,b'), 'a b');
+  assert.equal(normalizeTag(''), '');
+  assert.equal(normalizeTag(' , '), '');
+  assert.equal(normalizeTag('x'.repeat(50)).length, MAX_TAG_LENGTH);
+});
+
+test('canOpenImage', async () => {
+  const { canOpenImage } = await import('../../sidebar/model.js');
+  assert.equal(canOpenImage({ kind: 'http', urls: ['https://a/x.png'] }), true);
+  assert.equal(canOpenImage({ kind: 'data', urls: ['Embedded'], hasFull: false, hasThumb: false }), false);
+  assert.equal(canOpenImage({ kind: 'blob', urls: ['Generated'], hasFull: true }), true);
+});

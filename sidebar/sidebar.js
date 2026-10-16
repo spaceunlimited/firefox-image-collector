@@ -1,8 +1,12 @@
-// Sidebar controller: state, events, storage sync.
+// Sidebar controller: state, events, actions, storage sync.
 import * as store from '../shared/store.js';
-import { filterEntries, groupByDay, tagCounts, latestCapture } from './model.js';
+import { FAILURE_TEXT } from '../shared/format.js';
+import { filterEntries, groupByDay, tagCounts, latestCapture, canOpenImage } from './model.js';
 import { renderGroups, renderTagFilters, refreshTimes } from './view.js';
 import { ThumbLoader } from './thumbs.js';
+import { createNotice } from './notice.js';
+import { CardMenu } from './menu.js';
+import { DetailsPanel } from './details.js';
 
 const $ = (id) => document.getElementById(id);
 const els = {
@@ -12,24 +16,13 @@ const els = {
   from: $('from'),
   to: $('to'),
   viewToggle: $('view-toggle'),
+  openSettings: $('open-settings'),
   tagFilters: $('tag-filters'),
   list: $('list'),
   empty: $('empty'),
   noResults: $('no-results'),
   count: $('count'),
-  notice: $('notice'),
-  openSettings: $('open-settings'),
 };
-
-let noticeTimer = null;
-function notify(text, ms = 5000) {
-  els.notice.textContent = text;
-  els.notice.hidden = false;
-  clearTimeout(noticeTimer);
-  noticeTimer = setTimeout(() => {
-    els.notice.hidden = true;
-  }, ms);
-}
 
 const state = {
   entries: [],
@@ -41,6 +34,19 @@ const state = {
 };
 
 const thumbs = new ThumbLoader((ids) => store.getThumbs(ids));
+const notice = createNotice($('notice'));
+const menu = new CardMenu($('card-menu'), (action, id) => runAction(action, id));
+const details = new DetailsPanel($('details'), {
+  loadPreview,
+  onAction: (action, id) => runAction(action, id),
+  onOpenUrl: openUrl,
+  onTagsChange: saveTags,
+  onClose: (id) => els.list.querySelector(`.card[data-id="${CSS.escape(id ?? '')}"] .menu-btn`)?.focus(),
+});
+
+const allTags = () => tagCounts(state.entries).map(([t]) => t);
+
+// ---------- rendering ----------
 
 function render() {
   const now = Date.now();
@@ -59,7 +65,116 @@ async function reload() {
   state.entries = await store.loadAll();
   state.byId = new Map(state.entries.map((e) => [e.id, e]));
   render();
+  const openId = details.openId;
+  if (openId) {
+    const entry = state.byId.get(openId);
+    if (entry) details.update(entry, allTags());
+    else details.close();
+  }
 }
+
+async function loadPreview(entry, img) {
+  img.alt = latestCapture(entry)?.pageTitle || 'Collected image';
+  const fallback = async () => {
+    const src = (entry.hasFull && (await store.getFull(entry.id))) || (await store.getThumbs([entry.id]))[entry.id];
+    if (src) img.src = src;
+  };
+  if (entry.kind === 'http' && entry.urls[0]) {
+    img.referrerPolicy = 'no-referrer';
+    img.addEventListener('error', fallback, { once: true });
+    img.src = entry.urls[0];
+  } else {
+    fallback();
+  }
+}
+
+// ---------- actions ----------
+
+const BLOCKED_SCHEMES = /^(file|about|chrome|resource|moz-extension|view-source|data|blob|javascript):/i;
+
+function shortUrl(url) {
+  return url.length > 80 ? `${url.slice(0, 77)}…` : url;
+}
+
+async function openUrl(url) {
+  if (!url) return notice.show('No address was recorded.');
+  if (BLOCKED_SCHEMES.test(url)) {
+    return notice.show(`Firefox doesn't let extensions open this kind of page: ${shortUrl(url)}`, { ms: 8000 });
+  }
+  try {
+    await browser.tabs.create({ url });
+  } catch (err) {
+    console.warn('[sidebar] cannot open', url, err);
+    notice.show(`Couldn't open ${shortUrl(url)}`);
+  }
+  return undefined;
+}
+
+function openImage(entry) {
+  if (entry.kind === 'http' && entry.urls[0]) return openUrl(entry.urls[0]);
+  return browser.tabs.create({ url: browser.runtime.getURL(`viewer/viewer.html?id=${encodeURIComponent(entry.id)}`) });
+}
+
+async function recopy(entry) {
+  notice.show('Copying…', { ms: 30_000 });
+  let res;
+  try {
+    res = await browser.runtime.sendMessage({ type: 'recopy', id: entry.id });
+  } catch (err) {
+    console.error('[sidebar] recopy failed', err);
+    res = { ok: false, reason: 'unknown' };
+  }
+  if (res?.ok) notice.show(res.scaled ? 'Copied at reduced size' : 'Copied');
+  else notice.show(`Couldn't copy. ${FAILURE_TEXT[res?.reason] ?? FAILURE_TEXT.unknown}`, { ms: 7000 });
+}
+
+async function remove(entry) {
+  if (details.openId === entry.id) details.close();
+  els.list.querySelector(`.card[data-id="${CSS.escape(entry.id)}"]`)?.remove();
+  const bundle = await store.removeEntry(entry.id);
+  notice.show('Image deleted', {
+    ms: 6000,
+    action: {
+      label: 'Undo',
+      run: () => store.restoreEntry(bundle).catch((e) => notice.show(`Couldn't restore: ${e.message}`)),
+    },
+  });
+}
+
+function saveTags(id, tags) {
+  store.updateEntry(id, (e) => {
+    e.tags = tags;
+  }).catch((e) => notice.show(`Couldn't save tags: ${e.message}`));
+}
+
+function runAction(action, id) {
+  const entry = state.byId.get(id);
+  if (!entry) return;
+  switch (action) {
+    case 'recopy':
+      recopy(entry);
+      break;
+    case 'open-image':
+      openImage(entry);
+      break;
+    case 'open-page':
+      openUrl(latestCapture(entry)?.pageUrl);
+      break;
+    case 'details':
+      details.open(entry, allTags());
+      break;
+    case 'tags':
+      details.open(entry, allTags(), { focusTags: true });
+      break;
+    case 'delete':
+      remove(entry);
+      break;
+    default:
+      console.warn('[sidebar] unknown action', action);
+  }
+}
+
+// ---------- toolbar events ----------
 
 function applyView(view) {
   state.view = view;
@@ -93,6 +208,8 @@ els.viewToggle.addEventListener('click', () => {
   store.setSettings({ view: state.view });
 });
 
+els.openSettings.addEventListener('click', () => browser.runtime.openOptionsPage());
+
 els.tagFilters.addEventListener('click', (e) => {
   const chip = e.target.closest('.chip');
   if (!chip) return;
@@ -102,24 +219,41 @@ els.tagFilters.addEventListener('click', (e) => {
   render();
 });
 
+// ---------- card events ----------
+
 els.list.addEventListener('click', (e) => {
-  const thumb = e.target.closest('.thumb');
-  if (!thumb) return;
-  const entry = state.byId.get(thumb.closest('.card').dataset.id);
-  const pageUrl = entry && latestCapture(entry)?.pageUrl;
-  if (!pageUrl) {
-    notify('No source page was recorded for this image.');
-  } else if (/^(file|about|chrome|resource|moz-extension):/.test(pageUrl)) {
-    notify(`Firefox doesn't let extensions open this kind of page: ${pageUrl}`, 8000);
-  } else {
-    browser.tabs.create({ url: pageUrl }).catch((err) => {
-      console.warn('[sidebar] cannot open', pageUrl, err);
-      notify(`Couldn't open ${pageUrl}`);
+  const card = e.target.closest('.card');
+  if (!card) return;
+  const entry = state.byId.get(card.dataset.id);
+  if (!entry) return;
+  const menuBtn = e.target.closest('.menu-btn');
+  if (menuBtn) {
+    menu.toggle(menuBtn, entry.id, {
+      'open-image': canOpenImage(entry),
+      'open-page': Boolean(latestCapture(entry)?.pageUrl),
     });
+    return;
+  }
+  if (e.target.closest('.thumb')) openUrl(latestCapture(entry)?.pageUrl);
+});
+
+// Keyboard shortcut on a focused card: Delete/Backspace removes it.
+els.list.addEventListener('keydown', (e) => {
+  if (e.key !== 'Delete' && e.key !== 'Backspace') return;
+  const card = e.target.closest('.card');
+  const entry = card && state.byId.get(card.dataset.id);
+  if (entry) {
+    e.preventDefault();
+    remove(entry);
   }
 });
 
-els.openSettings.addEventListener('click', () => browser.runtime.openOptionsPage());
+// Escape closes the details panel even when focus is outside it.
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !menu.isOpen && details.openId && !e.defaultPrevented) details.close();
+});
+
+// ---------- sync ----------
 
 // Re-read when entries change in any context (captures from the background, other windows).
 let reloadTimer = null;
@@ -133,7 +267,10 @@ browser.storage.onChanged.addListener((changes, areaName) => {
   }
 });
 
-setInterval(() => refreshTimes(els.list), 60_000);
+setInterval(() => {
+  refreshTimes(els.list);
+  refreshTimes($('details'));
+}, 60_000);
 
 async function boot() {
   const settings = await store.getSettings();
