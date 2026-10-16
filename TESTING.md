@@ -17,7 +17,30 @@ Check items off by changing `[ ]` to `[x]`. Note failures under the item.
 - [ ] Open the sidebar with the toolbar button
 - [ ] Open the add-on's **Inspect** console to watch for errors
 
-## Round 7: native look and theme following
+## Round 8: Nova look, Ash and other themes
+
+The sidebar now follows Firefox's Nova design (rounded search, round buttons, violet accent) and knows
+the dark colors of Mozilla's 11 Nova themes, including Ash.
+
+- [ ] `about:debugging` → **Reload** on Image Collector
+
+### Ash (your theme)
+- [ ] macOS in dark mode: the sidebar is dark and matches Firefox's own sidebar colors, not white
+- [ ] Switch macOS to light mode with the sidebar open: the sidebar turns light without reopening
+- [ ] Buttons and links are violet and readable in both modes
+- [ ] Shapes match Firefox: rounded search field, round toolbar buttons, rounded tiles and menus
+
+### Other themes
+- [ ] Try one more Nova theme (for example Lavender or Tide) in dark and light mode
+- [ ] Try one non-Mozilla theme from addons.mozilla.org. If the sidebar looks off, note the theme's name here:
+
+### Toast
+- [ ] After a capture, the toast in the page uses the sidebar's colors and has rounded corners
+
+### Report back
+- [ ] A screenshot with Ash in dark mode, plus anything that still looks off
+
+## Round 7 results (done)
 
 The sidebar, menus, toast and settings were restyled to look like Firefox and follow the installed theme.
 I checked them in headless Chromium; this round checks real Firefox.
