@@ -44,7 +44,7 @@ browser.menus.onClicked.addListener((info, tab) => {
     .catch((e) => {
       console.error('[capture] failed', e);
       flashBadge(tab.id, 'warn');
-      toast(tab.id, 'Image Collector hit an unexpected error. See the extension console.', 'warn');
+      toast(tab.id, 'Something went wrong. See the add-on console.', 'warn');
     });
 });
 

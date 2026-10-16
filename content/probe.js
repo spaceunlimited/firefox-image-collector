@@ -32,7 +32,7 @@ export function showToast(text, variant) {
   host.__icTimer = setTimeout(() => {
     el.classList.remove('show');
     setTimeout(() => host.remove(), 200);
-  }, variant === 'progress' ? 60000 : variant === 'warn' ? 4000 : 2000);
+  }, variant === 'progress' ? 60000 : variant === 'warn' ? 5000 : 2000);
 }
 
 // Reads what the page knows about the right-clicked image. Must run immediately:
