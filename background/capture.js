@@ -10,6 +10,7 @@ import { flashBadge, toast } from './feedback.js';
 const FETCH_TIMEOUT_MS = 20_000;
 const MAX_BYTES = 50 * 1024 * 1024;
 const MAX_FULL_BYTES = 2 * 1024 * 1024;
+const PROGRESS_TOAST_DELAY_MS = 500;
 
 /** @returns {Promise<{ bytes: Uint8Array, contentType: string|null } | { error: string }>} */
 export async function fetchImage(url) {
@@ -116,6 +117,19 @@ function feedbackText(result, { incognito, storageFull, needsPermission }) {
 }
 
 export async function captureFromMenu(info, tab) {
+  // Large images take seconds to convert; tell the user something is happening.
+  const progress = { timer: null, shown: null };
+  progress.timer = setTimeout(() => {
+    progress.shown = toast(tab.id, 'Copying image…', 'progress');
+  }, PROGRESS_TOAST_DELAY_MS);
+  try {
+    return await capture(info, tab, progress);
+  } finally {
+    clearTimeout(progress.timer);
+  }
+}
+
+async function capture(info, tab, progress) {
   const at = Date.now();
   const frameId = info.frameId ?? 0;
   // Start the probe and the fetch together; the probe must run before the target id expires.
@@ -162,8 +176,18 @@ export async function captureFromMenu(info, tab) {
 
   const needsPermission = !result.copied && result.reason === 'cors' && !(await hasAllSites());
   const { text, variant } = feedbackText(result, { incognito: tab.incognito, storageFull, needsPermission });
+  clearTimeout(progress.timer);
+  await progress.shown; // so the final toast always replaces it
   flashBadge(tab.id, variant);
   toast(tab.id, text, variant);
-  console.log('[capture]', { imageUrl, copied: result.copied, reason: result.reason, mime: result.mime, dims: [result.width, result.height] });
+  console.log('[capture] done', {
+    ms: Date.now() - at,
+    imageUrl,
+    copied: result.copied,
+    reason: result.reason,
+    mime: result.mime,
+    dims: [result.width, result.height],
+    scaled: result.scaled,
+  });
   return result;
 }

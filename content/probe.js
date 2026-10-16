@@ -18,6 +18,7 @@ export function showToast(text, variant) {
              transition: opacity .15s ease, transform .15s ease; }
         .t.show { opacity: 1; transform: none; }
         .t.warn { border-left-color: #ea580c; }
+        .t.progress { border-left-color: #6b7280; }
         @media (prefers-color-scheme: dark) { .t { color: #f3f4f6; background: #1f2937; } }
       </style>
       <div class="t" role="status"></div>`;
@@ -25,13 +26,13 @@ export function showToast(text, variant) {
   }
   const el = host.shadowRoot.querySelector('.t');
   el.textContent = text;
-  el.className = 't' + (variant === 'warn' ? ' warn' : '');
+  el.className = 't' + (variant === 'warn' ? ' warn' : variant === 'progress' ? ' progress' : '');
   requestAnimationFrame(() => el.classList.add('show'));
   clearTimeout(host.__icTimer);
   host.__icTimer = setTimeout(() => {
     el.classList.remove('show');
     setTimeout(() => host.remove(), 200);
-  }, variant === 'warn' ? 4000 : 2000);
+  }, variant === 'progress' ? 60000 : variant === 'warn' ? 4000 : 2000);
 }
 
 // Reads what the page knows about the right-clicked image. Must run immediately:
