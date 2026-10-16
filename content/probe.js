@@ -18,16 +18,17 @@ export function showToast(text, variant, colors) {
     const root = host.attachShadow({ mode: 'open' });
     root.innerHTML = `
       <style>
-        .t { --bg: #fff; --fg: #15141a; --bd: #cfcfd8;
-             display: flex; align-items: center; gap: 8px; max-width: 340px; padding: 8px 12px;
+        .t { --bg: #ffffff; --fg: rgb(21, 20, 26); --bd: rgba(21, 20, 26, .18);
+             display: flex; align-items: center; gap: 8px; max-width: 340px; padding: 10px 16px 10px 12px;
              font: menu; font-size: 13px; line-height: 1.35; color: var(--fg); background: var(--bg);
-             border: 1px solid var(--bd); border-radius: 8px; box-shadow: 0 2px 14px rgba(0,0,0,.2);
+             border: 1px solid var(--bd); border-radius: 16px;
+             box-shadow: 0 0 1px rgba(0,0,0,.15), 0 4px 16px rgba(0,0,0,.12);
              opacity: 0; transform: translateY(6px); transition: opacity .15s ease, transform .15s ease; }
-        @media (prefers-color-scheme: dark) { .t { --bg: #42414d; --fg: #fbfbfe; --bd: #5b5b66; } }
+        @media (prefers-color-scheme: dark) { .t { --bg: #171519; --fg: rgb(249, 249, 250); --bd: rgba(249, 249, 250, .18); } }
         .t.show { opacity: 1; transform: none; }
         svg { width: 16px; height: 16px; flex: none; }
-        .ok svg { fill: #2ac3a2; }
-        .warn svg { fill: #ffa436; }
+        .ok svg { fill: #11ae84; }
+        .warn svg { fill: #e08a1e; }
         .progress svg { fill: currentColor; opacity: .7; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
       </style>

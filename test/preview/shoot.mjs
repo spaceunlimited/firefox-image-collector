@@ -124,9 +124,11 @@ await sidebarShot('9-purple-theme-grid', { theme: PURPLE, scheme: 'dark' });
 await sidebarShot('10-purple-theme-menu', { theme: PURPLE, scheme: 'dark' }, async (p) => { await p.hover('#list .card'); await p.click('#list .card .menu-btn'); });
 await sidebarShot('11-no-access-banner', { access: false });
 // Ash: getCurrent() returns its light colors even while Firefox shows the dark variant.
-const ASH_LIGHT = { colors: { frame: [239, 237, 242], toolbar: [255, 255, 255, 0.4], toolbar_text: [18, 17, 20], sidebar: [255, 255, 255], sidebar_text: [18, 17, 20], toolbar_field: [255, 255, 255], toolbar_field_text: [18, 17, 20] } };
+const ASH_LIGHT = { colors: { frame: [239, 237, 242], toolbar: [255, 255, 255, 0.4], toolbar_text: [18, 17, 20], sidebar: [255, 255, 255], sidebar_text: [18, 17, 20], toolbar_field: [255, 255, 255], toolbar_field_text: [18, 17, 20], tab_line: [183, 182, 186], icons: [37, 36, 40], button_background_hover: [103, 102, 106, 0.25], sidebar_border: [199, 198, 203] } };
 await sidebarShot('13-ash-in-dark-mode', { theme: ASH_LIGHT, scheme: 'dark' });
 await sidebarShot('14-ash-in-light-mode', { theme: ASH_LIGHT, scheme: 'light' });
+await sidebarShot('15-ash-dark-menu', { theme: ASH_LIGHT, scheme: 'dark' }, async (p) => { await p.hover('#list .card'); await p.click('#list .card .menu-btn'); });
+await sidebarShot('16-ash-dark-details', { theme: ASH_LIGHT, scheme: 'dark' }, async (p) => { await p.hover('#list .card'); await p.click('#list .card .menu-btn'); await p.click('#card-menu [data-action=tags]'); });
 
 for (const scheme of ['light', 'dark']) {
   const { page, ctx } = await open('options/options.html', { scheme, width: 900, height: 1100 });
