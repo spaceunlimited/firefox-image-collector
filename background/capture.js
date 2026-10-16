@@ -103,24 +103,21 @@ async function obtainBytes(info, tab, meta, firstFetch) {
 }
 
 function feedbackText(result, { incognito, storageFull, needsPermission }) {
-  if (storageFull) return { text: 'Storage is full. The image was not collected.', variant: 'warn' };
+  if (storageFull) return { text: 'Not saved: storage is full.', variant: 'warn' };
   if (incognito) {
     return result.copied
-      ? { text: 'Copied (not collected in private windows)', variant: 'ok' }
-      : { text: "Couldn't copy the image.", variant: 'warn' };
+      ? { text: 'Copied. Not saved in private windows.', variant: 'ok' }
+      : { text: "Couldn't copy.", variant: 'warn' };
   }
-  if (result.copied) {
-    return { text: result.scaled ? 'Copied at reduced size & collected' : 'Copied & collected', variant: 'ok' };
-  }
-  const hint = needsPermission ? ' Allow access to all sites in Image Collector settings to fix this.' : '';
-  return { text: "Saved, but couldn't copy the image." + hint, variant: 'warn' };
+  if (result.copied) return { text: result.scaled ? 'Copied (reduced size) & saved' : 'Copied & saved', variant: 'ok' };
+  return { text: needsPermission ? 'Saved, not copied. Allow site access in settings.' : 'Saved, not copied.', variant: 'warn' };
 }
 
 export async function captureFromMenu(info, tab) {
   // Large images take seconds to convert; tell the user something is happening.
   const progress = { timer: null, shown: null };
   progress.timer = setTimeout(() => {
-    progress.shown = toast(tab.id, 'Copying image…', 'progress');
+    progress.shown = toast(tab.id, 'Copying…', 'progress');
   }, PROGRESS_TOAST_DELAY_MS);
   try {
     return await capture(info, tab, progress);
