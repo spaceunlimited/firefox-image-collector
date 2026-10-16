@@ -63,5 +63,6 @@ export const FAILURE_TEXT = {
   clipboard: 'Firefox rejected the clipboard write.',
   nobytes: 'The image data was not available.',
   notloaded: 'The image had not finished loading.',
+  missing: 'The entry no longer exists.',
   unknown: 'Unknown error.',
 };

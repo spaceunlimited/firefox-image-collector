@@ -143,3 +143,24 @@ test('concurrent captures of the same URL do not duplicate', async () => {
   assert.equal(all.length, 1);
   assert.equal(all[0].captures.length, 2);
 });
+
+test('saveThumb sets the thumbnail and flag', async () => {
+  const { entry } = await store.recordCapture(cap({ thumb: null }));
+  assert.equal(entry.hasThumb, false);
+  await store.saveThumb(entry.id, 'data:image/webp;base64,N');
+  assert.equal((await store.getEntry(entry.id)).hasThumb, true);
+  assert.equal(fake.data.get(store.thumbKey(entry.id)), 'data:image/webp;base64,N');
+});
+
+test('updateEntry mutates and re-sorts the index', async () => {
+  const a = await store.recordCapture(cap());
+  await store.recordCapture(cap({ imageUrl: 'https://cdn.com/b.png', hash: 'sha256:b', at: 5_000 }));
+  await store.updateEntry(a.entry.id, (e) => {
+    e.tags = ['x'];
+    e.lastCapturedAt = 9_000;
+  });
+  const all = await store.loadAll();
+  assert.equal(all[0].id, a.entry.id);
+  assert.deepEqual(all[0].tags, ['x']);
+  assert.equal(await store.updateEntry('nope', () => {}), null);
+});
