@@ -5,19 +5,46 @@ import { latestCapture } from './model.js';
 
 const cardTemplate = document.getElementById('card-tpl');
 
-export function renderGroups(container, groups, { thumbs, now = Date.now() }) {
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function chevron() {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 16 16');
+  svg.setAttribute('class', 'chevron');
+  svg.setAttribute('aria-hidden', 'true');
+  const path = document.createElementNS(SVG_NS, 'path');
+  path.setAttribute('d', 'M3.2 5.5 4.3 4.4 8 8.1l3.7-3.7 1.1 1.1L8 10.3z');
+  svg.appendChild(path);
+  return svg;
+}
+
+/** Day groups like Firefox's History sidebar; `collapsed` holds group keys that are folded. */
+export function renderGroups(container, groups, { thumbs, now = Date.now(), collapsed = new Set() }) {
   thumbs.reset();
   const frag = document.createDocumentFragment();
   for (const group of groups) {
+    const isCollapsed = collapsed.has(group.key);
     const section = document.createElement('section');
     section.className = 'group';
-    const h = document.createElement('h2');
-    h.className = 'group-label';
-    h.textContent = group.label;
-    const cards = document.createElement('div');
-    cards.className = 'cards';
-    for (const entry of group.entries) cards.appendChild(renderCard(entry, { thumbs, now }));
-    section.append(h, cards);
+    const head = document.createElement('button');
+    head.type = 'button';
+    head.className = 'group-head';
+    head.dataset.key = String(group.key);
+    head.setAttribute('aria-expanded', String(!isCollapsed));
+    const label = document.createElement('span');
+    label.className = 'group-label';
+    label.textContent = group.label;
+    const count = document.createElement('span');
+    count.className = 'group-count';
+    count.textContent = String(group.entries.length);
+    head.append(chevron(), label, count);
+    section.appendChild(head);
+    if (!isCollapsed) {
+      const cards = document.createElement('div');
+      cards.className = 'cards';
+      for (const entry of group.entries) cards.appendChild(renderCard(entry, { thumbs, now }));
+      section.appendChild(cards);
+    }
     frag.appendChild(section);
   }
   container.replaceChildren(frag);
@@ -47,9 +74,9 @@ export function renderCard(entry, { thumbs, now }) {
   img.alt = last?.pageTitle || domain || 'Collected image';
 
   if (entry.captures.length > 1) {
-    const count = card.querySelector('.count');
+    const count = card.querySelector('.count-badge');
     count.hidden = false;
-    count.textContent = `×${entry.captures.length}`;
+    count.textContent = `${entry.captures.length}×`;
     count.title = `Collected ${entry.captures.length} times`;
   }
   if (entry.lastCopy?.status === 'failed') {
@@ -83,7 +110,6 @@ export function refreshTimes(container, now = Date.now()) {
 }
 
 export function renderTagFilters(container, counts, selected) {
-  container.hidden = counts.length === 0;
   container.replaceChildren(
     ...counts.map(([tag, n]) => {
       const b = document.createElement('button');

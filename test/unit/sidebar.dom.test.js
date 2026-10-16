@@ -70,6 +70,7 @@ before(async () => {
     },
     setInterval: () => 0,
   });
+  fake.api.theme.current = { colors: { sidebar: '#102030', sidebar_text: '#ffffff', popup: '#203040' } };
   await import('../../sidebar/sidebar.js');
   await waitFor(() => cards().length === 2, 'initial render');
 });
@@ -82,7 +83,7 @@ after(() => {
 test('renders one card per image, newest first, grouped by day', () => {
   assert.deepEqual(cards().map((c) => c.dataset.id), [fileId, pngId]);
   assert.equal(doc.querySelector('.group-label').textContent, 'Today');
-  assert.equal(cardFor(pngId).querySelector('.count').textContent, '×2');
+  assert.equal(cardFor(pngId).querySelector('.count-badge').textContent, '2×');
   assert.equal(cardFor(pngId).querySelector('.dims').textContent, '640 × 400');
   assert.equal(cardFor(fileId).querySelector('.warn').hidden, false);
   assert.equal(doc.getElementById('empty').hidden, true);
@@ -194,4 +195,41 @@ test('banner offers site access when a copy was blocked and access is off', asyn
   click(doc.getElementById('grant-access'));
   await waitFor(() => banner.hidden, 'banner hidden after grant');
   assert.match(doc.querySelector('.notice-text').textContent, /Site access allowed/);
+});
+
+test('date filter menu narrows the list and the pill clears it', async () => {
+  const btn = doc.getElementById('filter-btn');
+  click(btn);
+  const fm = doc.getElementById('filter-menu');
+  assert.equal(fm.hidden, false);
+  assert.equal(fm.querySelector('[data-action="all"]').getAttribute('aria-checked'), 'true');
+  click(fm.querySelector('[data-action="today"]'));
+  assert.equal(fm.hidden, true);
+  const pill = doc.getElementById('range-pill');
+  assert.equal(pill.hidden, false);
+  assert.equal(pill.textContent, 'Today');
+  assert.equal(doc.getElementById('filter-bar').hidden, false);
+  assert.equal(cards().length, 2);
+  click(pill);
+  assert.equal(pill.hidden, true);
+});
+
+test('day groups fold and unfold', () => {
+  const head = doc.querySelector('.group-head');
+  assert.equal(head.getAttribute('aria-expanded'), 'true');
+  click(head);
+  assert.equal(cards().length, 0);
+  assert.equal(doc.querySelector('.group-head').getAttribute('aria-expanded'), 'false');
+  click(doc.querySelector('.group-head'));
+  assert.equal(cards().length, 2);
+});
+
+test('follows the installed theme and returns to defaults', async () => {
+  const root = doc.documentElement;
+  assert.equal(root.style.getPropertyValue('--ic-bg'), '#102030');
+  assert.equal(root.style.getPropertyValue('--ic-popup'), '#203040');
+  assert.equal(root.style.colorScheme, 'dark');
+  fake.api.theme.set({});
+  await waitFor(() => root.style.getPropertyValue('--ic-bg') === '', 'theme reset');
+  assert.equal(root.dataset.theme, 'default');
 });

@@ -2,6 +2,7 @@
 import * as store from '../shared/store.js';
 import { FAILURE_TEXT } from '../shared/format.js';
 import { ALL_SITES, hasAllSites } from '../shared/permissions.js';
+import { followTheme } from '../shared/theme.js';
 import { filterEntries, groupByDay, tagCounts, latestCapture, canOpenImage } from './model.js';
 import { renderGroups, renderTagFilters, refreshTimes } from './view.js';
 import { ThumbLoader } from './thumbs.js';
@@ -12,7 +13,9 @@ import { DetailsPanel } from './details.js';
 const $ = (id) => document.getElementById(id);
 const els = {
   search: $('search'),
-  date: $('date'),
+  filterBtn: $('filter-btn'),
+  filterBar: $('filter-bar'),
+  rangePill: $('range-pill'),
   customRange: $('custom-range'),
   from: $('from'),
   to: $('to'),
@@ -37,11 +40,15 @@ const state = {
   view: 'grid',
   hasAccess: true,
   bannerDismissed: false,
+  collapsed: new Set(),
 };
+
+const RANGE_LABELS = { today: 'Today', '7d': 'Last 7 days', '30d': 'Last 30 days', custom: 'Custom range' };
 
 const thumbs = new ThumbLoader((ids) => store.getThumbs(ids));
 const notice = createNotice($('notice'));
 const menu = new CardMenu($('card-menu'), (action, id) => runAction(action, id));
+const filterMenu = new CardMenu($('filter-menu'), (kind) => setRange(kind));
 const details = new DetailsPanel($('details'), {
   loadPreview,
   onAction: (action, id) => runAction(action, id),
@@ -60,11 +67,16 @@ function render() {
   const counts = tagCounts(state.entries);
   for (const t of state.tags) if (!counts.some(([tag]) => tag === t)) state.tags.delete(t);
   renderTagFilters(els.tagFilters, counts, state.tags);
-  renderGroups(els.list, groupByDay(visible, now), { thumbs, now });
+  renderGroups(els.list, groupByDay(visible, now), { thumbs, now, collapsed: state.collapsed });
   els.empty.hidden = state.entries.length > 0;
   els.noResults.hidden = state.entries.length === 0 || visible.length > 0;
   const total = state.entries.length;
-  els.count.textContent = total === 0 ? '' : visible.length === total ? `${total} images` : `${visible.length} of ${total}`;
+  const rangeActive = state.range.kind !== 'all';
+  els.rangePill.hidden = !rangeActive;
+  els.rangePill.textContent = RANGE_LABELS[state.range.kind] ?? '';
+  els.filterBtn.classList.toggle('is-active', rangeActive);
+  els.filterBar.hidden = total === 0 || (!rangeActive && counts.length === 0);
+  els.count.textContent = visible.length === total ? `${total} ${total === 1 ? 'image' : 'images'}` : `${visible.length} of ${total}`;
   const blocked = state.entries.some((e) => e.lastCopy?.status === 'failed' && e.lastCopy.reason === 'cors');
   els.banner.hidden = state.hasAccess || state.bannerDismissed || !blocked;
 }
@@ -206,15 +218,23 @@ els.search.addEventListener('input', () => {
   }, 80);
 });
 
-function updateRange() {
-  const kind = els.date.value;
+function setRange(kind) {
   els.customRange.hidden = kind !== 'custom';
   state.range = { kind, from: els.from.value, to: els.to.value };
   render();
+  if (kind === 'custom') els.from.focus();
 }
-els.date.addEventListener('change', updateRange);
-els.from.addEventListener('change', updateRange);
-els.to.addEventListener('change', updateRange);
+const updateCustomRange = () => setRange('custom');
+els.from.addEventListener('change', updateCustomRange);
+els.to.addEventListener('change', updateCustomRange);
+
+els.filterBtn.addEventListener('click', () => {
+  for (const b of $('filter-menu').querySelectorAll('[data-action]')) {
+    b.setAttribute('aria-checked', String(b.dataset.action === state.range.kind));
+  }
+  filterMenu.toggle(els.filterBtn, null);
+});
+els.rangePill.addEventListener('click', () => setRange('all'));
 
 els.viewToggle.addEventListener('click', () => {
   applyView(state.view === 'grid' ? 'list' : 'grid');
@@ -250,6 +270,15 @@ els.tagFilters.addEventListener('click', (e) => {
 // ---------- card events ----------
 
 els.list.addEventListener('click', (e) => {
+  const head = e.target.closest('.group-head');
+  if (head) {
+    const key = Number(head.dataset.key);
+    if (state.collapsed.has(key)) state.collapsed.delete(key);
+    else state.collapsed.add(key);
+    render();
+    els.list.querySelector(`.group-head[data-key="${key}"]`)?.focus();
+    return;
+  }
   const card = e.target.closest('.card');
   if (!card) return;
   const entry = state.byId.get(card.dataset.id);
@@ -278,7 +307,7 @@ els.list.addEventListener('keydown', (e) => {
 
 // Escape closes the details panel even when focus is outside it.
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !menu.isOpen && details.openId && !e.defaultPrevented) details.close();
+  if (e.key === 'Escape' && !menu.isOpen && !filterMenu.isOpen && details.openId && !e.defaultPrevented) details.close();
 });
 
 // ---------- sync ----------
@@ -301,6 +330,7 @@ setInterval(() => {
 }, 60_000);
 
 async function boot() {
+  followTheme().catch((e) => console.warn('[sidebar] theme failed', e));
   const settings = await store.getSettings();
   applyView(settings.view);
   if (settings.autoDeleteDays) await store.purgeOlderThan(settings.autoDeleteDays);

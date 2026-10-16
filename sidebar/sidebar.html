@@ -9,51 +9,65 @@
 </head>
 <body data-view="grid">
   <header class="toolbar">
-    <div class="row">
-      <input id="search" type="search" placeholder="Search URL, site, title, tag" autocomplete="off" aria-label="Search">
-      <button id="view-toggle" class="icon-btn" type="button" aria-label="Switch to list view" title="Switch to list view">
-        <svg class="i-list" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v2H2zM2 7h12v2H2zM2 11h12v2H2z"/></svg>
-        <svg class="i-grid" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z"/></svg>
-      </button>
-      <button id="open-settings" class="icon-btn" type="button" aria-label="Settings" title="Settings">
-        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 5.5A2.5 2.5 0 1 0 8 10.5 2.5 2.5 0 0 0 8 5.5zm6.3 3.6-.1-2.2 1.3-1.1-1.4-2.4-1.6.5a6 6 0 0 0-1.9-1.1L10.3 1H5.7l-.3 1.8a6 6 0 0 0-1.9 1.1l-1.6-.5L.5 5.8l1.3 1.1-.1 2.2-1.2 1 1.4 2.4 1.6-.5a6 6 0 0 0 1.9 1.1l.3 1.9h4.6l.3-1.9a6 6 0 0 0 1.9-1.1l1.6.5 1.4-2.4z"/></svg>
-      </button>
-    </div>
-    <div class="row">
-      <select id="date" aria-label="Date range">
-        <option value="all">All time</option>
-        <option value="today">Today</option>
-        <option value="7d">Last 7 days</option>
-        <option value="30d">Last 30 days</option>
-        <option value="custom">Custom range…</option>
-      </select>
-      <span id="count" class="muted"></span>
-    </div>
-    <div id="custom-range" class="row" hidden>
-      <label>From <input id="from" type="date"></label>
-      <label>To <input id="to" type="date"></label>
-    </div>
-    <div id="tag-filters" class="chips" hidden aria-label="Filter by tag"></div>
+    <label class="search-field">
+      <svg class="search-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 1a5.5 5.5 0 0 1 4.38 8.83l3.65 3.64-1.06 1.06-3.64-3.65A5.5 5.5 0 1 1 6.5 1zm0 1.5a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>
+      <input id="search" type="search" placeholder="Search images" autocomplete="off" aria-label="Search by address, site, page title or tag">
+    </label>
+    <button id="filter-btn" class="icon-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Filter by date" title="Filter by date">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 1v1.5h7V1H13v1.5h.5A1.5 1.5 0 0 1 15 4v9.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 13.5V4a1.5 1.5 0 0 1 1.5-1.5H3V1zM13.5 6.5h-11v7h11zM5 8v1.5H3.5V8zm3.75 0v1.5h-1.5V8zm3.75 0v1.5H11V8z"/></svg>
+    </button>
+    <button id="view-toggle" class="icon-btn" type="button" aria-label="Switch to list view" title="Switch to list view">
+      <svg class="i-list" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 2.5h2v2H1zm4 .25h10v1.5H5zM1 7h2v2H1zm4 .25h10v1.5H5zM1 11.5h2v2H1zm4 .25h10v1.5H5z"/></svg>
+      <svg class="i-grid" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 1.5h5.25v5.25H1.5zm7.75 0h5.25v5.25H9.25zM1.5 9.25h5.25v5.25H1.5zm7.75 0h5.25v5.25H9.25z"/></svg>
+    </button>
+    <button id="open-settings" class="icon-btn" type="button" aria-label="Settings" title="Settings">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.2 1l.34 1.86c.42.16.82.39 1.18.67l1.78-.64 1.2 2.08-1.44 1.22a4.8 4.8 0 0 1 0 1.62l1.44 1.22-1.2 2.08-1.78-.64c-.36.28-.76.5-1.18.67L9.2 15H6.8l-.34-1.86a4.8 4.8 0 0 1-1.18-.67l-1.78.64-1.2-2.08 1.44-1.22a4.8 4.8 0 0 1 0-1.62L2.3 6.97l1.2-2.08 1.78.64c.36-.28.76-.5 1.18-.67L6.8 1zM8 5.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5z" fill-rule="evenodd"/></svg>
+    </button>
   </header>
 
+  <div id="custom-range" class="custom-range" hidden>
+    <label>From <input id="from" type="date"></label>
+    <label>To <input id="to" type="date"></label>
+  </div>
+
+  <div id="filter-bar" class="filter-bar" hidden>
+    <button id="range-pill" class="pill pill-active" type="button" hidden title="Clear date filter"></button>
+    <div id="tag-filters" class="chips" aria-label="Filter by tag"></div>
+    <span id="count" class="count"></span>
+  </div>
+
   <div id="access-banner" class="banner" role="status" hidden>
+    <svg class="banner-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 15 14H1zm-.75 4.25v4h1.5v-4zm0 5.25v1.5h1.5V11z"/></svg>
     <span>Some images couldn't be copied because site access is off.</span>
     <button id="grant-access" type="button">Allow</button>
-    <button id="dismiss-banner" class="banner-close" type="button" aria-label="Dismiss" title="Dismiss">×</button>
+    <button id="dismiss-banner" class="icon-btn small" type="button" aria-label="Dismiss" title="Dismiss">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 2.4 8 6.9l4.5-4.5 1.1 1.1L9.1 8l4.5 4.5-1.1 1.1L8 9.1l-4.5 4.5-1.1-1.1L6.9 8 2.4 3.5z"/></svg>
+    </button>
   </div>
 
   <main id="list" aria-live="polite"></main>
   <p id="empty" class="state" hidden>Right-click any image and choose <strong>Copy Image + Collect</strong>.</p>
   <p id="no-results" class="state" hidden>No images match these filters.</p>
+
   <div id="notice" class="notice" role="status" hidden>
     <span class="notice-text"></span>
     <button class="notice-action" type="button" hidden></button>
   </div>
 
+  <div id="filter-menu" class="menu" role="menu" aria-label="Date filter" hidden>
+    <button type="button" role="menuitemradio" data-action="all">All time</button>
+    <button type="button" role="menuitemradio" data-action="today">Today</button>
+    <button type="button" role="menuitemradio" data-action="7d">Last 7 days</button>
+    <button type="button" role="menuitemradio" data-action="30d">Last 30 days</button>
+    <hr>
+    <button type="button" role="menuitemradio" data-action="custom">Custom range…</button>
+  </div>
+
   <div id="card-menu" class="menu" role="menu" aria-label="Image actions" hidden>
-    <button type="button" role="menuitem" data-action="recopy">Re-copy image</button>
-    <button type="button" role="menuitem" data-action="open-image">Open image</button>
+    <button type="button" role="menuitem" data-action="recopy">Copy image again</button>
+    <button type="button" role="menuitem" data-action="open-image">Open image in new tab</button>
     <button type="button" role="menuitem" data-action="open-page">Open source page</button>
+    <hr>
     <button type="button" role="menuitem" data-action="details">Details</button>
     <button type="button" role="menuitem" data-action="tags">Edit tags</button>
     <hr>
@@ -65,14 +79,14 @@
   <template id="details-tpl">
     <div class="details-inner">
       <header class="details-head">
-        <button class="icon-btn details-close" type="button" aria-label="Close details" title="Close (Esc)">
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 2.1 8 6.6l4.5-4.5 1.4 1.4L9.4 8l4.5 4.5-1.4 1.4L8 9.4l-4.5 4.5-1.4-1.4L6.6 8 2.1 3.5z"/></svg>
+        <button class="icon-btn details-close" type="button" aria-label="Back" title="Back (Esc)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.06 3 7.12 4.06 3.93 7.25H15v1.5H3.93l3.19 3.19L6.06 13l-5-5z"/></svg>
         </button>
         <h2>Details</h2>
       </header>
       <div class="details-preview"><img alt=""></div>
       <div class="details-actions">
-        <button type="button" data-action="recopy">Re-copy</button>
+        <button type="button" class="primary" data-action="recopy">Copy again</button>
         <button type="button" data-action="open-image">Open image</button>
         <button type="button" data-action="open-page">Source page</button>
         <button type="button" data-action="delete" class="danger">Delete</button>
@@ -98,7 +112,7 @@
         <ul class="url-list"></ul>
       </section>
       <section>
-        <h3>Found on <span class="capture-count muted"></span></h3>
+        <h3>Found on <span class="capture-count"></span></h3>
         <ol class="capture-list"></ol>
       </section>
     </div>
@@ -106,17 +120,19 @@
 
   <template id="card-tpl">
     <article class="card">
-      <button class="menu-btn" type="button" aria-haspopup="menu" aria-expanded="false" title="Actions">
-        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="3" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="13" cy="8" r="1.5"/></svg>
-      </button>
       <button class="thumb" type="button">
         <img alt="" decoding="async">
-        <span class="warn badge" hidden aria-label="Copy failed">!</span>
-        <span class="count badge" hidden></span>
+        <span class="warn badge" hidden aria-label="Copy failed">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 15 14H1zm-.75 4.25v4h1.5v-4zm0 5.25v1.5h1.5V11z"/></svg>
+        </span>
+        <span class="count-badge badge" hidden></span>
+      </button>
+      <button class="menu-btn" type="button" aria-haspopup="menu" aria-expanded="false" title="More actions">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="3" cy="8" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="13" cy="8" r="1.4"/></svg>
       </button>
       <div class="info">
-        <div class="domain"></div>
         <div class="title"></div>
+        <div class="domain"></div>
         <div class="meta"><span class="dims"></span><time class="time"></time></div>
         <div class="tags"></div>
       </div>
