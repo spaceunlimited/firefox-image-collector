@@ -1,0 +1,30 @@
+<!doctype html><meta charset="utf-8"><title>Formats · fixtures</title><style>body{font:14px system-ui;margin:24px;max-width:900px}figure{display:inline-block;margin:0 16px 24px 0;vertical-align:top}figcaption{font-size:12px;color:#555;max-width:320px}img{max-width:320px;border:1px solid #ddd}h2{margin-top:32px}</style>
+<h1>Formats</h1>
+<figure><img src="img/photo.png"><figcaption>PNG with transparency (pass-through)</figcaption></figure>
+<figure><img src="img/photo.jpg"><figcaption>JPEG (pass-through)</figcaption></figure>
+<figure><img src="img/photo.webp"><figcaption>WebP (converted to PNG)</figcaption></figure>
+<figure><img src="img/photo.avif"><figcaption>AVIF (converted to PNG)</figcaption></figure>
+<figure><img src="img/animated.gif"><figcaption>Animated GIF (first frame copied)</figcaption></figure>
+<figure><img src="img/photo.bmp"><figcaption>BMP (converted)</figcaption></figure>
+<figure><img src="img/sized.svg"><figcaption>SVG with width/height: expect 300 × 200</figcaption></figure>
+<figure><img src="img/unsized.svg" style="width:320px"><figcaption>SVG with viewBox only: expect rendered size × device pixel ratio</figcaption></figure>
+<figure><img src="img/broken.png" alt="broken"><figcaption>Broken PNG: menu may not appear; if it does, expect "copy failed"</figcaption></figure>
+
+<h2>data: and blob:</h2>
+<figure><img id="data-img"><figcaption>data: URL image, label "Embedded image/png"</figcaption></figure>
+<figure><img id="blob-img"><figcaption>blob: URL image drawn by the page, label "Generated image/png"</figcaption></figure>
+
+<h2>Duplicates</h2>
+<figure><img src="img/photo.png#again"><figcaption>Same PNG URL with a #fragment: merges into the PNG card</figcaption></figure>
+<figure><img src="img/photo-mirror.png"><figcaption>Same bytes, different URL: merges into the PNG card, details list both URLs</figcaption></figure>
+
+<script>
+  const c = document.createElement('canvas');
+  c.width = 240; c.height = 150;
+  const g = c.getContext('2d');
+  const paint = (fill, text) => { g.fillStyle = fill; g.fillRect(0, 0, 240, 150); g.fillStyle = '#fff'; g.font = 'bold 20px sans-serif'; g.fillText(text, 20, 82); };
+  paint('#be123c', 'data: image');
+  document.getElementById('data-img').src = c.toDataURL('image/png');
+  paint('#4d7c0f', 'blob: image');
+  c.toBlob((b) => { document.getElementById('blob-img').src = URL.createObjectURL(b); }, 'image/png');
+</script>
