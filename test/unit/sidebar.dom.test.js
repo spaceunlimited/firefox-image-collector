@@ -166,3 +166,13 @@ test('search filters cards as you type', async () => {
   search.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
   await waitFor(() => cards().length === 2, 'unfiltered');
 });
+
+test('banner offers site access when a copy was blocked and access is off', async () => {
+  const banner = doc.getElementById('access-banner');
+  assert.equal(banner.hidden, true);
+  await fake.api.permissions.remove();
+  await waitFor(() => !banner.hidden, 'banner shown');
+  click(doc.getElementById('grant-access'));
+  await waitFor(() => banner.hidden, 'banner hidden after grant');
+  assert.match(doc.querySelector('.notice-text').textContent, /Site access allowed/);
+});

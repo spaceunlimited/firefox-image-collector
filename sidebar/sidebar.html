@@ -36,6 +36,12 @@
     <div id="tag-filters" class="chips" hidden aria-label="Filter by tag"></div>
   </header>
 
+  <div id="access-banner" class="banner" role="status" hidden>
+    <span>Some images couldn't be copied because site access is off.</span>
+    <button id="grant-access" type="button">Allow</button>
+    <button id="dismiss-banner" class="banner-close" type="button" aria-label="Dismiss" title="Dismiss">×</button>
+  </div>
+
   <main id="list" aria-live="polite"></main>
   <p id="empty" class="state" hidden>Right-click any image and choose <strong>Copy Image + Collect</strong>.</p>
   <p id="no-results" class="state" hidden>No images match these filters.</p>
