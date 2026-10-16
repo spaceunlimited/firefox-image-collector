@@ -95,6 +95,8 @@ export async function extractImage(targetId, url) {
   const el = browser.menus.getTargetElement(targetId);
   const img = el instanceof HTMLImageElement ? el : el?.closest?.('img');
   if (!img || !img.complete || !img.naturalWidth) return { error: 'notloaded' };
+  // The element still shows something else (e.g. a lazy-load placeholder).
+  if (url && img.currentSrc && img.currentSrc !== url) return { error: 'notloaded' };
   try {
     const canvas = document.createElement('canvas');
     canvas.width = img.naturalWidth;

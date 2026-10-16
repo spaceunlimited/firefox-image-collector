@@ -82,13 +82,11 @@ export async function processBytes(bytes, contentType, hint = {}, { copy = true,
 async function obtainBytes(info, tab, meta, firstFetch) {
   const frameId = info.frameId ?? 0;
   const srcUrl = info.srcUrl;
-  let imageUrl = chooseImageUrl(srcUrl, meta);
+  const imageUrl = chooseImageUrl(srcUrl, meta);
   let got = (await firstFetch) ?? { error: 'nobytes' };
-  if (imageUrl !== srcUrl && kindOf(imageUrl) !== 'blob') {
-    const alt = await fetchImage(imageUrl);
-    if (alt.bytes) got = alt;
-    else if (got.bytes) imageUrl = srcUrl;
-  }
+  // The probe found a better URL (srcset choice or the real file behind a lazy-load
+  // placeholder). Never fall back to the placeholder bytes.
+  if (imageUrl !== srcUrl) got = kindOf(imageUrl) === 'blob' ? { error: 'nobytes' } : await fetchImage(imageUrl);
   if (!got.bytes && got.error !== 'toolarge') {
     const extracted = await inject(tab.id, frameId, extractImage, [info.targetElementId, imageUrl]);
     if (extracted?.dataUrl) {
