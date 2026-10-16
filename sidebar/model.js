@@ -84,3 +84,21 @@ export function tagCounts(entries) {
 export function latestCapture(entry) {
   return entry.captures.at(-1) ?? null;
 }
+
+export const MAX_TAG_LENGTH = 32;
+
+// Tags are lowercase, single-spaced, without commas, and at most MAX_TAG_LENGTH characters.
+export function normalizeTag(raw) {
+  return String(raw ?? '')
+    .replace(/,/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase()
+    .slice(0, MAX_TAG_LENGTH)
+    .trim();
+}
+
+// Whether "Open image" has something to show.
+export function canOpenImage(entry) {
+  return Boolean((entry.kind === 'http' && entry.urls[0]) || entry.hasFull || entry.hasThumb);
+}
