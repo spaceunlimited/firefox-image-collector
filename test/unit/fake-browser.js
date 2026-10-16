@@ -1,7 +1,14 @@
-// Minimal in-memory stand-in for browser.storage.local with the same call shapes.
+// Minimal in-memory stand-in for the WebExtension APIs the extension uses.
 export function installFakeBrowser({ failSetWhen } = {}) {
   const data = new Map();
-  const clone = (v) => structuredClone(v);
+  const listeners = new Set();
+  const clone = (v) => (v === undefined ? v : structuredClone(v));
+  const emit = (changes) => {
+    if (!Object.keys(changes).length) return;
+    queueMicrotask(() => {
+      for (const fn of listeners) fn(changes, 'local');
+    });
+  };
   const local = {
     async get(keys) {
       const out = {};
@@ -18,15 +25,50 @@ export function installFakeBrowser({ failSetWhen } = {}) {
     },
     async set(items) {
       if (failSetWhen?.(items)) throw new Error('QuotaExceededError');
-      for (const [k, v] of Object.entries(items)) data.set(k, clone(v));
+      const changes = {};
+      for (const [k, v] of Object.entries(items)) {
+        changes[k] = { oldValue: clone(data.get(k)), newValue: clone(v) };
+        data.set(k, clone(v));
+      }
+      emit(changes);
     },
     async remove(keys) {
-      for (const k of [].concat(keys)) data.delete(k);
+      const changes = {};
+      for (const k of [].concat(keys)) {
+        if (data.has(k)) changes[k] = { oldValue: clone(data.get(k)) };
+        data.delete(k);
+      }
+      emit(changes);
     },
     async clear() {
       data.clear();
     },
   };
-  globalThis.browser = { storage: { local } };
-  return { data, local };
+  const calls = { tabsCreate: [], messages: [], openOptions: 0 };
+  const api = {
+    storage: {
+      local,
+      onChanged: { addListener: (fn) => listeners.add(fn), removeListener: (fn) => listeners.delete(fn) },
+    },
+    tabs: {
+      async create(opts) {
+        calls.tabsCreate.push(opts);
+        return { id: 1, ...opts };
+      },
+    },
+    runtime: {
+      messageHandler: async () => ({ ok: true }),
+      async sendMessage(msg) {
+        calls.messages.push(msg);
+        return api.runtime.messageHandler(msg);
+      },
+      openOptionsPage() {
+        calls.openOptions += 1;
+        return Promise.resolve();
+      },
+      getURL: (path) => `moz-extension://test/${path}`,
+    },
+  };
+  globalThis.browser = api;
+  return { data, local, calls, api };
 }
