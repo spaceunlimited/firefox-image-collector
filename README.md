@@ -34,9 +34,19 @@ Permissions. To use the menu in private windows, enable **Run in Private Windows
 ## Checks
 
 ```sh
-npm test            # unit tests (node:test)
+npm test            # unit tests plus jsdom smoke tests of the sidebar and settings pages
 npm run lint        # web-ext lint
 ```
+
+Manual test rounds are tracked in `TESTING.md`.
+
+## Where things are
+
+- Right-click an image → **Copy Image + Collect**.
+- Toolbar button: toggles the sidebar. Each card has a ⋯ menu: re-copy, open image, open source page,
+  details, edit tags, delete (with Undo).
+- Gear button in the sidebar: settings tab with site access, automatic cleanup, export (JSON, CSV),
+  import (JSON), storage usage and delete everything.
 
 ## Manual test fixtures
 

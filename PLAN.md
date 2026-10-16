@@ -1,5 +1,9 @@
 # Image Collector — Firefox extension build plan
 
+> **Status (2026-10-16):** v1 steps 1–7 are implemented. Deviations from this plan: export lives on the
+> settings page instead of a sidebar menu, and the settings page opens in its own tab. Private-window
+> behaviour is implemented but untested.
+
 ## Context
 
 Firefox's native "Copy Image" leaves no trace of where an image came from. This extension adds its own
