@@ -1,0 +1,21 @@
+/*
+ * Personal Firefox tweak, not part of the extension: moves the sidebar header (title and close
+ * button) of extension sidebars, such as Image Collector, down by 50px.
+ *
+ * Extensions can't style Firefox's own interface, so this has to live in your profile:
+ *   1. about:config → set toolkit.legacyUserProfileCustomizations.stylesheets to true
+ *   2. about:support → Profile Folder → Open in Finder
+ *   3. In that folder, create a folder named "chrome" and copy this file into it
+ *      (if a userChrome.css already exists there, append this rule instead)
+ *   4. Restart Firefox
+ *
+ * Scope: Firefox loads every extension sidebar through webext-panels.xhtml, so this matches
+ * extension sidebars only, not Bookmarks, History or other built-in panels. It can't be narrowed
+ * to one extension because Firefox exposes no attribute naming the open extension panel.
+ * Element names from browser/base/content/browser-box.inc.xhtml (Firefox 157): #sidebar-panel-header
+ * is the current sidebar, #sidebar-header the older one.
+ */
+#sidebar-box:has(#sidebar[src="chrome://browser/content/webext-panels.xhtml"]) #sidebar-panel-header,
+#sidebar-box:has(#sidebar[src="chrome://browser/content/webext-panels.xhtml"]) #sidebar-header {
+  margin-top: 50px !important;
+}
