@@ -1,21 +1,29 @@
 /*
- * Personal Firefox tweak, not part of the extension: moves the sidebar header (title and close
- * button) of extension sidebars, such as Image Collector, down by 50px.
+ * Personal Firefox tweak, not part of the extension: gives extension sidebars (such as Image
+ * Collector) the same header spacing as Firefox's own panels (History, Bookmarks, Tabs from other
+ * devices).
  *
- * Extensions can't style Firefox's own interface, so this has to live in your profile:
+ * Why: in Firefox 157 the sidebar title and close button of extension panels are a
+ * <sidebar-panel-header> inside chrome://browser/content/webext-panels.xhtml. Its title margin comes
+ * from --sidebar-panel-header-heading-margin-block, which is defined in
+ * browser/components/sidebar/sidebar.css. Firefox's own panels load that stylesheet;
+ * webext-panels.xhtml doesn't, so the margin falls back to 0 and the header looks cramped.
+ * Mozilla restructured this header on 2026-10-16 (bug 2077206), so later versions may not need it.
+ * Extensions can't style this header themselves, so the fix has to live in the profile.
+ *
+ * Install:
  *   1. about:config → set toolkit.legacyUserProfileCustomizations.stylesheets to true
  *   2. about:support → Profile Folder → Open in Finder
  *   3. In that folder, create a folder named "chrome" and copy this file into it
  *      (if a userChrome.css already exists there, append this rule instead)
  *   4. Restart Firefox
  *
- * Scope: Firefox loads every extension sidebar through webext-panels.xhtml, so this matches
- * extension sidebars only, not Bookmarks, History or other built-in panels. It can't be narrowed
- * to one extension because Firefox exposes no attribute naming the open extension panel.
- * Element names from browser/base/content/browser-box.inc.xhtml (Firefox 157): #sidebar-panel-header
- * is the current sidebar, #sidebar-header the older one.
+ * #webextpanels-window only exists in extension sidebars, so built-in panels are not affected.
  */
-#sidebar-box:has(#sidebar[src="chrome://browser/content/webext-panels.xhtml"]) #sidebar-panel-header,
-#sidebar-box:has(#sidebar[src="chrome://browser/content/webext-panels.xhtml"]) #sidebar-header {
-  margin-top: 50px !important;
+#webextpanels-window {
+  /* Firefox's own value: --space-large (16px); 12px in compact density. Raise it for more space. */
+  --sidebar-panel-header-heading-margin-block: var(--space-large, 16px);
+}
+#webextpanels-window[uidensity="compact"] {
+  --sidebar-panel-header-heading-margin-block: var(--space-medium, 12px);
 }
