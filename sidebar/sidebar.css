@@ -178,9 +178,12 @@ body[data-view=grid] .i-grid, body[data-view=list] .i-list { display: none; }
   display: grid; place-items: center; width: 28px; height: 28px; padding: 0;
   border: 0; border-radius: var(--radius-pill); cursor: default;
   background: var(--ic-popup); color: var(--ic-popup-text); box-shadow: 0 1px 4px rgba(0, 0, 0, .25);
-  opacity: 0; transition: opacity .1s ease;
+  opacity: 0; transition: opacity .1s ease, background-color .1s ease;
 }
 .menu-btn svg { width: 16px; height: 16px; fill: currentColor; }
+body[data-view=grid] .menu-btn:hover { background: color-mix(in srgb, var(--ic-popup-text) 12%, var(--ic-popup)); }
+body[data-view=grid] .menu-btn:hover:active,
+body[data-view=grid] .menu-btn[aria-expanded=true] { background: color-mix(in srgb, var(--ic-popup-text) 22%, var(--ic-popup)); }
 .card:hover .menu-btn, .card:focus-within .menu-btn, .menu-btn[aria-expanded=true] { opacity: 1; }
 @media (hover: none) { .menu-btn { opacity: 1; } }
 
@@ -228,6 +231,8 @@ body[data-view=list] .menu-btn {
   background: transparent; color: var(--ic-icons); box-shadow: none;
 }
 body[data-view=list] .menu-btn:hover { background: var(--ic-hover); }
+body[data-view=list] .menu-btn:hover:active,
+body[data-view=list] .menu-btn[aria-expanded=true] { background: var(--ic-active); }
 
 /* ---------- menus (Firefox menupopup) ---------- */
 
