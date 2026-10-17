@@ -59,19 +59,69 @@ export function filterEntries(entries, { query = '', range = { kind: 'all' }, ta
   return entries.filter((e) => hasAllTags(e, tags) && inRange(e, bounds) && matchesQuery(e, query));
 }
 
-// Groups entries (already newest first) by the day of their latest capture.
-export function groupByDay(entries, now = Date.now()) {
+export const SORTS = ['added-desc', 'added-asc'];
+export const GROUPINGS = ['date', 'tag', 'none'];
+
+// Sorts by the time an image was first added; ties broken by id so the order is stable.
+export function sortEntries(entries, sort = 'added-desc') {
+  const dir = sort === 'added-asc' ? 1 : -1;
+  return [...entries].sort((a, b) => dir * (a.firstCapturedAt - b.firstCapturedAt) || a.id.localeCompare(b.id));
+}
+
+// Groups already sorted entries by calendar day of `field`, keeping their order.
+export function groupByDay(entries, now = Date.now(), field = 'lastCapturedAt') {
   const groups = [];
   let current = null;
   for (const e of entries) {
-    const key = dayKey(e.lastCapturedAt);
+    const key = `day:${dayKey(e[field])}`;
     if (!current || current.key !== key) {
-      current = { key, label: dayGroupLabel(e.lastCapturedAt, now), entries: [] };
+      current = { key, label: dayGroupLabel(e[field], now), entries: [] };
       groups.push(current);
     }
     current.entries.push(e);
   }
   return groups;
+}
+
+// The user's saved tag order, followed by tags it doesn't know yet (most used first).
+export function orderTags(counts, savedOrder = []) {
+  const known = new Set(counts.map(([t]) => t));
+  const ordered = savedOrder.filter((t) => known.has(t));
+  const seen = new Set(ordered);
+  for (const [t] of counts) if (!seen.has(t)) ordered.push(t);
+  return ordered;
+}
+
+/**
+ * One group per visible tag, in `order`; an image with several tags appears in each of them.
+ * Images in none of the visible groups go to a trailing group unless `showRest` is false.
+ */
+export function groupByTag(entries, { order = [], hidden = [], showRest = true } = {}) {
+  const visible = order.filter((t) => !hidden.includes(t));
+  const groups = visible
+    .map((t) => ({ key: `tag:${t}`, label: t, entries: entries.filter((e) => e.tags.includes(t)) }))
+    .filter((g) => g.entries.length);
+  if (showRest) {
+    const rest = entries.filter((e) => !e.tags.some((t) => visible.includes(t)));
+    if (rest.length) {
+      const label = rest.every((e) => e.tags.length === 0) ? 'Untagged' : 'Other';
+      groups.push({ key: 'rest', label, entries: rest, rest: true });
+    }
+  }
+  return groups;
+}
+
+/**
+ * Sorts, then groups. `opts`: { groupBy, sort, tagOrder, hiddenTags, showRest }.
+ * Grouping "none" returns one group without a heading.
+ */
+export function groupEntries(entries, opts = {}, now = Date.now()) {
+  const sorted = sortEntries(entries, opts.sort);
+  if (opts.groupBy === 'tag') {
+    return groupByTag(sorted, { order: opts.tagOrder, hidden: opts.hiddenTags, showRest: opts.showRest !== false });
+  }
+  if (opts.groupBy === 'none') return sorted.length ? [{ key: 'all', label: null, entries: sorted }] : [];
+  return groupByDay(sorted, now, 'firstCapturedAt');
 }
 
 // Tags with counts, most used first, ties alphabetical.
@@ -86,6 +136,16 @@ export function latestCapture(entry) {
 }
 
 export const MAX_TAG_LENGTH = 32;
+
+// Tags matching what's typed, for the search field's suggestions: prefix matches first.
+export function matchTags(counts, query, exclude = new Set(), max = 8) {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const pool = counts.filter(([t]) => !exclude.has(t));
+  const prefix = pool.filter(([t]) => t.startsWith(q));
+  const inner = pool.filter(([t]) => !t.startsWith(q) && t.includes(q));
+  return [...prefix, ...inner].slice(0, max);
+}
 
 // Tags are lowercase, single-spaced, without commas, and at most MAX_TAG_LENGTH characters.
 export function normalizeTag(raw) {

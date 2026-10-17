@@ -23,13 +23,23 @@ export function renderGroups(container, groups, { thumbs, now = Date.now(), coll
   thumbs.reset();
   const frag = document.createDocumentFragment();
   for (const group of groups) {
-    const isCollapsed = collapsed.has(group.key);
+    const isCollapsed = group.label !== null && collapsed.has(group.key);
     const section = document.createElement('section');
     section.className = 'group';
+    if (group.label === null) {
+      // Ungrouped list: no heading, nothing to fold.
+      section.classList.add('no-head');
+      const cards = document.createElement('div');
+      cards.className = 'cards';
+      for (const entry of group.entries) cards.appendChild(renderCard(entry, { thumbs, now }));
+      section.appendChild(cards);
+      frag.appendChild(section);
+      continue;
+    }
     const head = document.createElement('button');
     head.type = 'button';
     head.className = 'group-head';
-    head.dataset.key = String(group.key);
+    head.dataset.key = group.key;
     head.setAttribute('aria-expanded', String(!isCollapsed));
     const label = document.createElement('span');
     label.className = 'group-label';
@@ -94,15 +104,17 @@ export function renderCard(entry, { thumbs, now }) {
   typeEl.textContent = type;
   typeEl.hidden = !type;
   const time = card.querySelector('.time');
-  time.dateTime = new Date(entry.lastCapturedAt).toISOString();
-  time.dataset.ts = String(entry.lastCapturedAt);
-  time.textContent = relativeTime(entry.lastCapturedAt, now);
-  time.title = absoluteTime(entry.lastCapturedAt);
+  // Cards show when the image was added, matching the sort order.
+  const added = entry.firstCapturedAt;
+  time.dateTime = new Date(added).toISOString();
+  time.dataset.ts = String(added);
+  time.textContent = relativeTime(added, now);
+  time.title = `Added ${absoluteTime(added)}`;
   const short = card.querySelector('.time-short');
   short.dateTime = time.dateTime;
   short.dataset.ts = time.dataset.ts;
   short.dataset.format = 'short';
-  short.textContent = shortRelativeTime(entry.lastCapturedAt, now);
+  short.textContent = shortRelativeTime(added, now);
   short.title = time.title;
   card.querySelector('.domain').textContent = domain;
   card.querySelector('.title').textContent = last?.pageTitle || '';
@@ -121,22 +133,4 @@ export function refreshTimes(container, now = Date.now()) {
     const ts = Number(el.dataset.ts);
     el.textContent = el.dataset.format === 'short' ? shortRelativeTime(ts, now) : relativeTime(ts, now);
   }
-}
-
-export function renderTagFilters(container, counts, selected) {
-  container.replaceChildren(
-    ...counts.map(([tag, n]) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'chip';
-      b.dataset.tag = tag;
-      b.setAttribute('aria-pressed', String(selected.has(tag)));
-      b.textContent = tag;
-      const c = document.createElement('span');
-      c.className = 'chip-count';
-      c.textContent = String(n);
-      b.append(' ', c);
-      return b;
-    }),
-  );
 }

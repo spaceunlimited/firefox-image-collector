@@ -9,12 +9,16 @@
 </head>
 <body data-view="grid">
   <header class="toolbar">
-    <label class="search-field">
-      <svg class="search-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 1a5.5 5.5 0 0 1 4.38 8.83l3.65 3.64-1.06 1.06-3.64-3.65A5.5 5.5 0 1 1 6.5 1zm0 1.5a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>
-      <input id="search" type="search" placeholder="Search images" autocomplete="off" aria-label="Search by address, site, page title or tag">
-    </label>
-    <button id="filter-btn" class="icon-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Filter by date" title="Filter by date">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 1v1.5h7V1H13v1.5h.5A1.5 1.5 0 0 1 15 4v9.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 13.5V4a1.5 1.5 0 0 1 1.5-1.5H3V1zM13.5 6.5h-11v7h11zM5 8v1.5H3.5V8zm3.75 0v1.5h-1.5V8zm3.75 0v1.5H11V8z"/></svg>
+    <div class="search-wrap">
+      <div id="search-field" class="search-field">
+        <svg class="search-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 1a5.5 5.5 0 0 1 4.38 8.83l3.65 3.64-1.06 1.06-3.64-3.65A5.5 5.5 0 1 1 6.5 1zm0 1.5a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>
+        <span id="search-tokens" class="search-tokens"></span>
+        <input id="search" type="search" placeholder="Search images or tags" autocomplete="off" aria-label="Search by address, site, page title or tag">
+      </div>
+      <ul id="tag-suggest" class="suggest" role="listbox" aria-label="Matching tags" hidden></ul>
+    </div>
+    <button id="options-btn" class="icon-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="view-panel" aria-label="Group, sort and filter" title="Group, sort and filter">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 3.25h7.6a2.25 2.25 0 0 1 4.3 0H15v1.5h-2.1a2.25 2.25 0 0 1-4.3 0H1zm9.75-.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5zM1 7.25h2.1a2.25 2.25 0 0 1 4.3 0H15v1.5H7.4a2.25 2.25 0 0 1-4.3 0H1zm4.25-.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5zM1 11.25h7.6a2.25 2.25 0 0 1 4.3 0H15v1.5h-2.1a2.25 2.25 0 0 1-4.3 0H1zm9.75-.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5z"/></svg>
     </button>
     <button id="view-toggle" class="icon-btn" type="button" aria-label="Switch to list view" title="Switch to list view">
       <svg class="i-list" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 2.5h2v2H1zm4 .25h10v1.5H5zM1 7h2v2H1zm4 .25h10v1.5H5zM1 11.5h2v2H1zm4 .25h10v1.5H5z"/></svg>
@@ -32,7 +36,6 @@
 
   <div id="filter-bar" class="filter-bar" hidden>
     <button id="range-pill" class="pill pill-active" type="button" hidden title="Clear date filter"></button>
-    <div id="tag-filters" class="chips" aria-label="Filter by tag"></div>
     <span id="count" class="count"></span>
   </div>
 
@@ -54,13 +57,40 @@
     <button class="notice-action" type="button" hidden></button>
   </div>
 
-  <div id="filter-menu" class="menu" role="menu" aria-label="Date filter" hidden>
-    <button type="button" role="menuitemradio" data-action="all">All time</button>
-    <button type="button" role="menuitemradio" data-action="today">Today</button>
-    <button type="button" role="menuitemradio" data-action="7d">Last 7 days</button>
-    <button type="button" role="menuitemradio" data-action="30d">Last 30 days</button>
-    <hr>
-    <button type="button" role="menuitemradio" data-action="custom">Custom range…</button>
+
+  <div id="view-panel" class="popover" role="dialog" aria-label="Group, sort and filter" hidden>
+    <section>
+      <h3 id="vp-group">Group by</h3>
+      <div class="segmented" role="radiogroup" aria-labelledby="vp-group">
+        <button type="button" role="radio" data-group="date">Date</button>
+        <button type="button" role="radio" data-group="tag">Tag</button>
+        <button type="button" role="radio" data-group="none">None</button>
+      </div>
+    </section>
+    <section>
+      <h3 id="vp-sort">Sort by time added</h3>
+      <div class="segmented" role="radiogroup" aria-labelledby="vp-sort">
+        <button type="button" role="radio" data-sort="added-desc">Newest first</button>
+        <button type="button" role="radio" data-sort="added-asc">Oldest first</button>
+      </div>
+    </section>
+    <section>
+      <h3 id="vp-range">Show</h3>
+      <div class="segmented wrap" role="radiogroup" aria-labelledby="vp-range">
+        <button type="button" role="radio" data-range="all">All time</button>
+        <button type="button" role="radio" data-range="today">Today</button>
+        <button type="button" role="radio" data-range="7d">7 days</button>
+        <button type="button" role="radio" data-range="30d">30 days</button>
+        <button type="button" role="radio" data-range="custom">Custom…</button>
+      </div>
+    </section>
+    <section class="tag-groups" hidden>
+      <h3>Tag groups</h3>
+      <p class="hint">Drag to reorder, or use Alt+↑/↓. Untick a tag to drop its group.</p>
+      <ol class="tag-order"></ol>
+      <p class="tag-empty hint" hidden>No tags yet. Add tags from an image's ⋯ menu.</p>
+      <label class="rest-toggle"><input type="checkbox"> Show images not in a group</label>
+    </section>
   </div>
 
   <div id="card-menu" class="menu" role="menu" aria-label="Image actions" hidden>

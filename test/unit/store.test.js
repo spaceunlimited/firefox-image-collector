@@ -132,7 +132,7 @@ test('captures are capped per entry', async () => {
 });
 
 test('settings merge over defaults', async () => {
-  assert.deepEqual(await store.getSettings(), { autoDeleteDays: null, view: 'grid' });
+  assert.deepEqual(await store.getSettings(), { autoDeleteDays: null, view: 'grid', groupBy: 'date', sort: 'added-desc', tagOrder: [], hiddenTags: [], showRest: true });
   await store.setSettings({ view: 'list' });
   assert.equal((await store.getSettings()).view, 'list');
 });

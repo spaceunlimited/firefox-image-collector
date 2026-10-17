@@ -16,6 +16,11 @@ export { MAX_CAPTURES_PER_ENTRY, MAX_TITLE_LENGTH };
 export const DEFAULT_SETTINGS = Object.freeze({
   autoDeleteDays: null,
   view: 'grid',
+  groupBy: 'date',
+  sort: 'added-desc',
+  tagOrder: [],
+  hiddenTags: [],
+  showRest: true,
 });
 
 export const entryKey = (id) => `entry:${id}`;

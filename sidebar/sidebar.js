@@ -3,8 +3,10 @@ import * as store from '../shared/store.js';
 import { FAILURE_TEXT } from '../shared/format.js';
 import { ALL_SITES, hasAllSites } from '../shared/permissions.js';
 import { followTheme } from '../shared/theme.js';
-import { filterEntries, groupByDay, tagCounts, latestCapture, canOpenImage } from './model.js';
-import { renderGroups, renderTagFilters, refreshTimes } from './view.js';
+import { filterEntries, groupEntries, orderTags, tagCounts, latestCapture, canOpenImage, SORTS, GROUPINGS } from './model.js';
+import { renderGroups, refreshTimes } from './view.js';
+import { TagSearch } from './tag-search.js';
+import { ViewOptions } from './view-options.js';
 import { ThumbLoader } from './thumbs.js';
 import { createNotice } from './notice.js';
 import { CardMenu } from './menu.js';
@@ -13,7 +15,7 @@ import { DetailsPanel } from './details.js';
 const $ = (id) => document.getElementById(id);
 const els = {
   search: $('search'),
-  filterBtn: $('filter-btn'),
+  optionsBtn: $('options-btn'),
   filterBar: $('filter-bar'),
   rangePill: $('range-pill'),
   customRange: $('custom-range'),
@@ -21,7 +23,6 @@ const els = {
   to: $('to'),
   viewToggle: $('view-toggle'),
   openSettings: $('open-settings'),
-  tagFilters: $('tag-filters'),
   list: $('list'),
   empty: $('empty'),
   noResults: $('no-results'),
@@ -36,8 +37,13 @@ const state = {
   byId: new Map(),
   query: '',
   range: { kind: 'all' },
-  tags: new Set(),
   view: 'grid',
+  // Persisted in settings:
+  groupBy: 'date',
+  sort: 'added-desc',
+  tagOrder: [],
+  hiddenTags: [],
+  showRest: true,
   hasAccess: true,
   bannerDismissed: false,
   collapsed: new Set(),
@@ -48,7 +54,19 @@ const RANGE_LABELS = { today: 'Today', '7d': 'Last 7 days', '30d': 'Last 30 days
 const thumbs = new ThumbLoader((ids) => store.getThumbs(ids));
 const notice = createNotice($('notice'));
 const menu = new CardMenu($('card-menu'), (action, id) => runAction(action, id));
-const filterMenu = new CardMenu($('filter-menu'), (kind) => setRange(kind));
+let searchTimer = null;
+const tagSearch = new TagSearch({
+  field: $('search-field'),
+  input: els.search,
+  tokens: $('search-tokens'),
+  list: $('tag-suggest'),
+  getCounts: () => tagCounts(state.entries),
+  onChange: () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(render, 80);
+  },
+});
+const viewOptions = new ViewOptions($('view-panel'), els.optionsBtn, applyViewOptions);
 const details = new DetailsPanel($('details'), {
   loadPreview,
   onAction: (action, id) => runAction(action, id),
@@ -63,20 +81,34 @@ const allTags = () => tagCounts(state.entries).map(([t]) => t);
 
 function render() {
   const now = Date.now();
-  const visible = filterEntries(state.entries, state, now);
   const counts = tagCounts(state.entries);
-  for (const t of state.tags) if (!counts.some(([tag]) => tag === t)) state.tags.delete(t);
-  renderTagFilters(els.tagFilters, counts, state.tags);
-  renderGroups(els.list, groupByDay(visible, now), { thumbs, now, collapsed: state.collapsed });
+  tagSearch.prune(new Set(counts.map(([t]) => t)));
+  const visible = filterEntries(state.entries, { query: tagSearch.query, range: state.range, tags: tagSearch.tags }, now);
+  const order = orderTags(counts, state.tagOrder);
+  const groups = groupEntries(
+    visible,
+    { groupBy: state.groupBy, sort: state.sort, tagOrder: order, hiddenTags: state.hiddenTags, showRest: state.showRest },
+    now,
+  );
+  renderGroups(els.list, groups, { thumbs, now, collapsed: state.collapsed });
   els.empty.hidden = state.entries.length > 0;
   els.noResults.hidden = state.entries.length === 0 || visible.length > 0;
   const total = state.entries.length;
   const rangeActive = state.range.kind !== 'all';
+  const filtering = rangeActive || tagSearch.tags.size > 0 || tagSearch.query.trim() !== '';
   els.rangePill.hidden = !rangeActive;
   els.rangePill.textContent = RANGE_LABELS[state.range.kind] ?? '';
-  els.filterBtn.classList.toggle('is-active', rangeActive);
-  els.filterBar.hidden = total === 0 || (!rangeActive && counts.length === 0);
-  els.count.textContent = visible.length === total ? `${total} ${total === 1 ? 'image' : 'images'}` : `${visible.length} of ${total}`;
+  els.optionsBtn.classList.toggle('is-active', rangeActive);
+  els.filterBar.hidden = total === 0 || !filtering;
+  els.count.textContent = `${visible.length} of ${total}`;
+  const countMap = new Map(counts);
+  viewOptions.render({
+    groupBy: state.groupBy,
+    sort: state.sort,
+    range: state.range.kind,
+    tags: order.map((tag) => ({ tag, count: countMap.get(tag) ?? 0, visible: !state.hiddenTags.includes(tag) })),
+    showRest: state.showRest,
+  });
   const blocked = state.entries.some((e) => e.lastCopy?.status === 'failed' && e.lastCopy.reason === 'cors');
   els.banner.hidden = state.hasAccess || state.bannerDismissed || !blocked;
 }
@@ -208,15 +240,6 @@ function applyView(view) {
   els.viewToggle.title = `Switch to ${next} view`;
 }
 
-let searchTimer = null;
-els.search.addEventListener('input', () => {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => {
-    state.query = els.search.value;
-    render();
-  }, 80);
-});
-
 function setRange(kind) {
   els.customRange.hidden = kind !== 'custom';
   state.range = { kind, from: els.from.value, to: els.to.value };
@@ -227,13 +250,21 @@ const updateCustomRange = () => setRange('custom');
 els.from.addEventListener('change', updateCustomRange);
 els.to.addEventListener('change', updateCustomRange);
 
-els.filterBtn.addEventListener('click', () => {
-  for (const b of $('filter-menu').querySelectorAll('[data-action]')) {
-    b.setAttribute('aria-checked', String(b.dataset.action === state.range.kind));
-  }
-  filterMenu.toggle(els.filterBtn, null);
-});
 els.rangePill.addEventListener('click', () => setRange('all'));
+
+const PERSISTED = ['groupBy', 'sort', 'tagOrder', 'hiddenTags', 'showRest'];
+
+// Changes from the view options popover. Grouping, sort and tag groups are remembered.
+function applyViewOptions(patch) {
+  if ('range' in patch) {
+    setRange(patch.range);
+    return;
+  }
+  Object.assign(state, patch);
+  render();
+  const saved = Object.fromEntries(Object.entries(patch).filter(([k]) => PERSISTED.includes(k)));
+  if (Object.keys(saved).length) store.setSettings(saved).catch((e) => console.warn('[sidebar] settings not saved', e));
+}
 
 els.viewToggle.addEventListener('click', () => {
   applyView(state.view === 'grid' ? 'list' : 'grid');
@@ -257,25 +288,16 @@ els.dismissBanner.addEventListener('click', () => {
 browser.permissions.onAdded.addListener(refreshAccess);
 browser.permissions.onRemoved.addListener(refreshAccess);
 
-els.tagFilters.addEventListener('click', (e) => {
-  const chip = e.target.closest('.chip');
-  if (!chip) return;
-  const tag = chip.dataset.tag;
-  if (state.tags.has(tag)) state.tags.delete(tag);
-  else state.tags.add(tag);
-  render();
-});
-
 // ---------- card events ----------
 
 els.list.addEventListener('click', (e) => {
   const head = e.target.closest('.group-head');
   if (head) {
-    const key = Number(head.dataset.key);
+    const key = head.dataset.key;
     if (state.collapsed.has(key)) state.collapsed.delete(key);
     else state.collapsed.add(key);
     render();
-    els.list.querySelector(`.group-head[data-key="${key}"]`)?.focus();
+    els.list.querySelector(`.group-head[data-key="${CSS.escape(key)}"]`)?.focus();
     return;
   }
   const card = e.target.closest('.card');
@@ -306,7 +328,7 @@ els.list.addEventListener('keydown', (e) => {
 
 // Escape closes the details panel even when focus is outside it.
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !menu.isOpen && !filterMenu.isOpen && details.openId && !e.defaultPrevented) details.close();
+  if (e.key === 'Escape' && !menu.isOpen && !viewOptions.isOpen && details.openId && !e.defaultPrevented) details.close();
 });
 
 // ---------- sync ----------
@@ -332,6 +354,11 @@ async function boot() {
   followTheme().catch((e) => console.warn('[sidebar] theme failed', e));
   const settings = await store.getSettings();
   applyView(settings.view);
+  state.groupBy = GROUPINGS.includes(settings.groupBy) ? settings.groupBy : 'date';
+  state.sort = SORTS.includes(settings.sort) ? settings.sort : 'added-desc';
+  state.tagOrder = Array.isArray(settings.tagOrder) ? settings.tagOrder : [];
+  state.hiddenTags = Array.isArray(settings.hiddenTags) ? settings.hiddenTags : [];
+  state.showRest = settings.showRest !== false;
   if (settings.autoDeleteDays) await store.purgeOlderThan(settings.autoDeleteDays);
   state.hasAccess = await hasAllSites().catch(() => true);
   await reload();
