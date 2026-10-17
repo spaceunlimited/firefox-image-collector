@@ -25,6 +25,21 @@ export function domainOf(url) {
   }
 }
 
+const EXT_MIME = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', jfif: 'image/jpeg', png: 'image/png', apng: 'image/png', webp: 'image/webp',
+  gif: 'image/gif', avif: 'image/avif', svg: 'image/svg+xml', bmp: 'image/bmp', ico: 'image/x-icon', heic: 'image/heic', jxl: 'image/jxl',
+};
+
+// Guesses the image type from the file extension in a URL's path. null if there is none.
+export function mimeFromUrl(url) {
+  try {
+    const ext = new URL(url).pathname.match(/\.([a-z0-9]+)$/i)?.[1]?.toLowerCase();
+    return (ext && EXT_MIME[ext]) || null;
+  } catch {
+    return null;
+  }
+}
+
 // Picks the URL that best represents what the user saw. `meta` comes from the in-page probe.
 // Lazy-loading libraries keep the real URL in data-* attributes while src holds a placeholder.
 export function chooseImageUrl(srcUrl, meta) {

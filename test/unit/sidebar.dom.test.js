@@ -35,7 +35,7 @@ before(async () => {
   pngId = (
     await store.recordCapture({
       at: now - 60_000, kind: 'http', imageUrl: 'https://cdn.example.com/a.png', pageUrl: 'https://example.com/article',
-      pageTitle: 'An article', copied: true, hash: 'sha256:a', width: 640, height: 400, thumb: 'data:image/webp;base64,AA',
+      pageTitle: 'An article', copied: true, hash: 'sha256:a', width: 640, height: 400, thumb: 'data:image/webp;base64,AA', mime: 'image/png',
     })
   ).entry.id;
   await store.recordCapture({
@@ -86,6 +86,8 @@ test('renders one card per image, newest first, grouped by day', () => {
   assert.equal(cardFor(pngId).querySelector('.count-badge').textContent, '2×');
   assert.equal(cardFor(pngId).querySelector('.dims').textContent, '640 × 400');
   assert.equal(cardFor(fileId).querySelector('.warn').hidden, false);
+  assert.equal(cardFor(pngId).querySelector('.type-label').textContent, 'PNG');
+  assert.equal(cardFor(fileId).querySelector('.type-label').hidden, true);
   assert.equal(doc.getElementById('empty').hidden, true);
 });
 
