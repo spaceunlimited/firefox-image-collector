@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sniffMime, fitBudget } from '../../background/image.js';
+import { sniffMime, fitBudget, thumbSize } from '../../background/image.js';
 
 const bytes = (...parts) => {
   const arr = [];
@@ -41,4 +41,11 @@ test('fitBudget keeps small images and scales large ones', () => {
   assert.ok(big.width * big.height <= 40_000_000);
   const wide = fitBudget(40_000, 100);
   assert.ok(wide.width <= 16_384);
+});
+
+test('thumbSize: short side 240, long side capped at 480, never upscaled', () => {
+  assert.deepEqual(thumbSize(1600, 1000), { w: 384, h: 240 });
+  assert.deepEqual(thumbSize(1000, 1000), { w: 240, h: 240 });
+  assert.deepEqual(thumbSize(4000, 1000), { w: 480, h: 120 }); // panorama: long side wins
+  assert.deepEqual(thumbSize(120, 80), { w: 120, h: 80 });
 });

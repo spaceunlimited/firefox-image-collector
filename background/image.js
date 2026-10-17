@@ -3,7 +3,10 @@
 
 export const MAX_PIXELS = 40_000_000;
 export const MAX_SIDE = 16_384;
-export const THUMB_SIZE = 200;
+// Thumbnails fill square tiles (object-fit: cover), so size them by their short side, enough for
+// a ~150px tile on a 2x display, and cap the long side to keep storage small.
+export const THUMB_MIN_SIDE = 240;
+export const THUMB_MAX_SIDE = 480;
 
 export class CaptureError extends Error {
   constructor(reason, message) {
@@ -145,10 +148,14 @@ export function blobToDataUrl(blob) {
   });
 }
 
-export async function makeThumbnail(bitmap, max = THUMB_SIZE) {
-  const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
-  const w = Math.max(1, Math.round(bitmap.width * scale));
-  const h = Math.max(1, Math.round(bitmap.height * scale));
+// Target size for a thumbnail: short side THUMB_MIN_SIDE, long side at most THUMB_MAX_SIDE, never upscaled.
+export function thumbSize(width, height, minSide = THUMB_MIN_SIDE, maxSide = THUMB_MAX_SIDE) {
+  const scale = Math.min(1, minSide / Math.min(width, height), maxSide / Math.max(width, height));
+  return { w: Math.max(1, Math.round(width * scale)), h: Math.max(1, Math.round(height * scale)) };
+}
+
+export async function makeThumbnail(bitmap) {
+  const { w, h } = thumbSize(bitmap.width, bitmap.height);
   const canvas = new OffscreenCanvas(w, h);
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingQuality = 'high';
