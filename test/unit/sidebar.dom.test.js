@@ -91,11 +91,21 @@ test('renders one card per image, newest first, grouped by day', () => {
   assert.equal(doc.getElementById('empty').hidden, true);
 });
 
-test('thumbnail opens the latest source page; file: pages show a notice', async () => {
+test('thumbnail opens details; source page opens the latest page; file: pages show a notice', async () => {
   click(cardFor(pngId).querySelector('.thumb'));
+  const panel = doc.getElementById('details');
+  assert.equal(panel.hidden, false);
+  assert.equal(panel.querySelector('.f-dims').textContent, '640 × 400');
+  assert.equal(fake.calls.tabsCreate.length, 0);
+  click(panel.querySelector('.details-close'));
+  assert.equal(panel.hidden, true);
+
+  click(cardFor(pngId).querySelector('.menu-btn'));
+  click(doc.querySelector('#card-menu [data-action="open-page"]'));
   await waitFor(() => fake.calls.tabsCreate.length === 1, 'tabs.create');
   assert.equal(fake.calls.tabsCreate[0].url, 'https://other.org/page');
-  click(cardFor(fileId).querySelector('.thumb'));
+  click(cardFor(fileId).querySelector('.menu-btn'));
+  click(doc.querySelector('#card-menu [data-action="open-page"]'));
   await waitFor(() => !doc.getElementById('notice').hidden, 'notice');
   assert.match(doc.querySelector('.notice-text').textContent, /doesn't let extensions open/);
   assert.equal(fake.calls.tabsCreate.length, 1);

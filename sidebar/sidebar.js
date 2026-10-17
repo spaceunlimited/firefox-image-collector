@@ -348,7 +348,7 @@ els.list.addEventListener('click', (e) => {
     });
     return;
   }
-  if (e.target.closest('.thumb')) openUrl(latestCapture(entry)?.pageUrl);
+  if (e.target.closest('.thumb')) runAction('details', entry.id);
 });
 
 // Keyboard shortcut on a focused card: Delete/Backspace removes it.
