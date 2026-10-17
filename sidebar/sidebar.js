@@ -93,7 +93,7 @@ function render() {
     { groupBy: state.groupBy, sort: state.sort, tagOrder: order, hiddenTags: state.hiddenTags, showRest: state.showRest },
     now,
   );
-  renderGroups(els.list, groups, { thumbs, now, collapsed: state.collapsed });
+  renderGroups(els.list, groups, { thumbs, now, collapsed: state.collapsed, sort: state.sort });
   els.empty.hidden = state.entries.length > 0;
   els.noResults.hidden = state.entries.length === 0 || visible.length > 0;
   const total = state.entries.length;

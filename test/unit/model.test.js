@@ -101,12 +101,27 @@ test('typeLabel and mimeFromUrl', async () => {
   assert.equal(mimeFromUrl('not a url'), null);
 });
 
-const added = (id, first, tags = []) => ({ ...entry(id, first, { tags }), firstCapturedAt: first, lastCapturedAt: now });
+const added = (id, first, tags = [], last = first) => ({ ...entry(id, first, { tags }), firstCapturedAt: first, lastCapturedAt: last });
 
 test('sortEntries by time added, both directions, stable on ties', () => {
   const list = [added('b', 2), added('a', 1), added('c', 3), added('d', 2)];
   assert.deepEqual(sortEntries(list).map((e) => e.id), ['c', 'b', 'd', 'a']);
   assert.deepEqual(sortEntries(list, 'added-asc').map((e) => e.id), ['a', 'b', 'd', 'c']);
+});
+
+test('sortEntries: newest first uses the last capture, oldest first the first capture', () => {
+  // 'again' was first collected earliest but collected again most recently.
+  const list = [added('again', 1, [], 10), added('mid', 5), added('late', 8)];
+  assert.deepEqual(sortEntries(list, 'added-desc').map((e) => e.id), ['again', 'late', 'mid']);
+  assert.deepEqual(sortEntries(list, 'added-asc').map((e) => e.id), ['again', 'mid', 'late']);
+});
+
+test('groupEntries by date groups by the sorted capture time', () => {
+  const list = [added('again', now - 3 * DAY, [], now - 60_000), added('today', now - 120_000)];
+  const desc = groupEntries(list, { groupBy: 'date', sort: 'added-desc' }, now);
+  assert.deepEqual(desc.map((g) => [g.label, g.entries.map((e) => e.id)]), [['Today', ['again', 'today']]]);
+  const asc = groupEntries(list, { groupBy: 'date', sort: 'added-asc' }, now);
+  assert.deepEqual(asc.map((g) => g.entries.map((e) => e.id)), [['again'], ['today']]);
 });
 
 test('groupEntries by date uses the added day and keeps the sort inside groups', () => {

@@ -62,10 +62,17 @@ export function filterEntries(entries, { query = '', range = { kind: 'all' }, ta
 export const SORTS = ['added-desc', 'added-asc'];
 export const GROUPINGS = ['date', 'tag', 'none'];
 
-// Sorts by the time an image was first added; ties broken by id so the order is stable.
+// Newest first uses the latest time an image was collected, so collecting it again moves it to the top;
+// oldest first uses the first time it was collected.
+export function sortField(sort = 'added-desc') {
+  return sort === 'added-asc' ? 'firstCapturedAt' : 'lastCapturedAt';
+}
+
+// Sorts by sortField(sort); ties broken by id so the order is stable.
 export function sortEntries(entries, sort = 'added-desc') {
   const dir = sort === 'added-asc' ? 1 : -1;
-  return [...entries].sort((a, b) => dir * (a.firstCapturedAt - b.firstCapturedAt) || a.id.localeCompare(b.id));
+  const field = sortField(sort);
+  return [...entries].sort((a, b) => dir * (a[field] - b[field]) || a.id.localeCompare(b.id));
 }
 
 // Groups already sorted entries by calendar day of `field`, keeping their order.
@@ -121,7 +128,7 @@ export function groupEntries(entries, opts = {}, now = Date.now()) {
     return groupByTag(sorted, { order: opts.tagOrder, hidden: opts.hiddenTags, showRest: opts.showRest !== false });
   }
   if (opts.groupBy === 'none') return sorted.length ? [{ key: 'all', label: null, entries: sorted }] : [];
-  return groupByDay(sorted, now, 'firstCapturedAt');
+  return groupByDay(sorted, now, sortField(opts.sort));
 }
 
 // Tags with counts, most used first, ties alphabetical.

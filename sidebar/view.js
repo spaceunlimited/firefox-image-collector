@@ -1,13 +1,13 @@
 // DOM rendering for the sidebar. All user data goes through textContent or attributes.
 import { domainOf } from '../shared/url.js';
 import { formatDims, relativeTime, shortRelativeTime, absoluteTime, typeLabel, FAILURE_TEXT } from '../shared/format.js';
-import { latestCapture } from './model.js';
+import { latestCapture, sortField } from './model.js';
 import { createIcon } from '../shared/icons.js';
 
 const cardTemplate = document.getElementById('card-tpl');
 
 /** Day groups like Firefox's History sidebar; `collapsed` holds group keys that are folded. */
-export function renderGroups(container, groups, { thumbs, now = Date.now(), collapsed = new Set() }) {
+export function renderGroups(container, groups, { thumbs, now = Date.now(), collapsed = new Set(), sort }) {
   thumbs.reset();
   const frag = document.createDocumentFragment();
   for (const group of groups) {
@@ -19,7 +19,7 @@ export function renderGroups(container, groups, { thumbs, now = Date.now(), coll
       section.classList.add('no-head');
       const cards = document.createElement('div');
       cards.className = 'cards';
-      for (const entry of group.entries) cards.appendChild(renderCard(entry, { thumbs, now }));
+      for (const entry of group.entries) cards.appendChild(renderCard(entry, { thumbs, now, sort }));
       section.appendChild(cards);
       frag.appendChild(section);
       continue;
@@ -40,7 +40,7 @@ export function renderGroups(container, groups, { thumbs, now = Date.now(), coll
     if (!isCollapsed) {
       const cards = document.createElement('div');
       cards.className = 'cards';
-      for (const entry of group.entries) cards.appendChild(renderCard(entry, { thumbs, now }));
+      for (const entry of group.entries) cards.appendChild(renderCard(entry, { thumbs, now, sort }));
       section.appendChild(cards);
     }
     frag.appendChild(section);
@@ -48,7 +48,7 @@ export function renderGroups(container, groups, { thumbs, now = Date.now(), coll
   container.replaceChildren(frag);
 }
 
-export function renderCard(entry, { thumbs, now }) {
+export function renderCard(entry, { thumbs, now, sort }) {
   const card = cardTemplate.content.firstElementChild.cloneNode(true);
   const last = latestCapture(entry);
   card.dataset.id = entry.id;
@@ -92,12 +92,13 @@ export function renderCard(entry, { thumbs, now }) {
   typeEl.textContent = type;
   typeEl.hidden = !type;
   const time = card.querySelector('.time');
-  // Cards show when the image was added, matching the sort order.
-  const added = entry.firstCapturedAt;
+  // Cards show the time the list is sorted by: last collected for newest first, first collected for oldest first.
+  const field = sortField(sort);
+  const added = entry[field];
   time.dateTime = new Date(added).toISOString();
   time.dataset.ts = String(added);
   time.textContent = relativeTime(added, now);
-  time.title = `Added ${absoluteTime(added)}`;
+  time.title = `${field === 'firstCapturedAt' ? 'First collected' : 'Last collected'} ${absoluteTime(added)}`;
   const short = card.querySelector('.time-short');
   short.dateTime = time.dateTime;
   short.dataset.ts = time.dataset.ts;
