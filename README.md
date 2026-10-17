@@ -1,7 +1,7 @@
 # Image Collector
 
 Firefox extension that adds **Copy Image + Collect** to the image context menu. It copies the image to the
-clipboard and records where it was found. A sidebar lists everything collected. See `PLAN.md` for the spec.
+clipboard and records where it was found. A sidebar lists everything collected.
 
 ## Install
 
@@ -60,8 +60,6 @@ Permissions. To use the menu in private windows, enable **Run in Private Windows
 npm test            # unit tests plus jsdom smoke tests of the sidebar and settings pages
 npm run lint        # web-ext lint (self-hosted: allows update_url)
 ```
-
-Manual test rounds are tracked in `TESTING.md`.
 
 Visual check without Firefox: `npm run preview` renders the sidebar and settings pages in headless
 Chromium with sample data (light, dark and a custom theme) into `test/preview/out/`. Set `CHROMIUM_PATH`
