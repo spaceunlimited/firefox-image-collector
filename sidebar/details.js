@@ -2,6 +2,7 @@
 import { domainOf } from '../shared/url.js';
 import { formatDims, formatBytes, relativeTime, absoluteTime, typeLabel, FAILURE_TEXT } from '../shared/format.js';
 import { normalizeTag, canOpenImage, suggestTags } from './model.js';
+import { createIcon } from '../shared/icons.js';
 
 const template = document.getElementById('details-tpl');
 
@@ -126,7 +127,7 @@ export class DetailsPanel {
         b.type = 'button';
         b.className = 'tag-suggestion';
         b.dataset.tag = tag;
-        b.textContent = tag;
+        b.append(createIcon('plus'), tag);
         return b;
       }),
     );
@@ -180,7 +181,7 @@ export class DetailsPanel {
       x.className = 'tag-remove';
       x.dataset.tag = tag;
       x.setAttribute('aria-label', `Remove tag ${tag}`);
-      x.textContent = '×';
+      x.appendChild(createIcon('close'));
       chip.appendChild(x);
       chips.appendChild(chip);
     }

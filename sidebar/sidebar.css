@@ -114,7 +114,7 @@ body[data-view=grid] .i-grid, body[data-view=list] .i-list { display: none; }
 .chip[aria-pressed=true], .pill-active {
   border-color: transparent; background: var(--ic-accent); color: var(--ic-on-accent);
 }
-.pill-active::after { content: "×"; font-size: 14px; line-height: 1; opacity: .8; }
+.pill-active::after { content: ""; width: 12px; height: 12px; background: currentColor; opacity: .85; mask: var(--icon-close) center / contain no-repeat; }
 .chip-count { opacity: .6; }
 .count { margin-left: auto; font-size: 11px; color: var(--ic-muted); }
 
@@ -144,7 +144,7 @@ body[data-view=grid] .i-grid, body[data-view=list] .i-list { display: none; }
   border: 0; border-radius: var(--radius-s); background: transparent; color: var(--ic-text); cursor: default;
 }
 .group-head:hover { background: var(--ic-hover); }
-.group-head .chevron { width: 12px; height: 12px; fill: currentColor; opacity: .7; transition: transform .12s ease; }
+.group-head .chevron { width: 16px; height: 16px; fill: currentColor; opacity: .7; transition: transform .12s ease; }
 .group-head[aria-expanded=false] .chevron { transform: rotate(-90deg); }
 .group-count { margin-left: auto; font-weight: 400; font-size: 11px; color: var(--ic-muted); }
 
@@ -162,7 +162,7 @@ body[data-view=grid] .i-grid, body[data-view=list] .i-list { display: none; }
 .thumb.no-thumb::after {
   content: ""; position: absolute; inset: 0; margin: auto; width: 24px; height: 24px;
   background: var(--ic-muted); opacity: .6;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2.5 2h11A1.5 1.5 0 0 1 15 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9A1.5 1.5 0 0 1 2.5 2zm0 1.5v7.4l3-3 2.5 2.5 2-2 3.5 3.5V3.5zM10.5 5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: var(--icon-image) center / contain no-repeat;
 }
 .badge {
   position: absolute; z-index: 1;
@@ -334,7 +334,6 @@ body.details-open { overflow: hidden; }
   height: 24px; padding: 0 10px; font: inherit; font-size: 12px; cursor: default;
   border: 1px dashed var(--ic-separator); border-radius: var(--radius-pill); background: transparent; color: var(--ic-text);
 }
-.tag-suggestion::before { content: "+ "; color: var(--ic-muted); }
 .tag-suggestion:hover { border-style: solid; background: var(--ic-hover); }
 
 /* ---------- search: tag chips and suggestions ---------- */
@@ -360,9 +359,6 @@ body.details-open { overflow: hidden; }
 .suggest [role=option] {
   display: flex; align-items: center; gap: 8px; min-height: 30px; padding: 4px 12px;
   border-radius: var(--radius-s); cursor: default;
-}
-.suggest [role=option]::before {
-  content: "#"; color: var(--ic-muted); font-weight: 600;
 }
 .suggest [role=option][aria-selected=true], .suggest [role=option]:hover { background: var(--ic-popup-hover); }
 .suggest-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -411,7 +407,7 @@ body.details-open { overflow: hidden; }
 .tag-row.drop-before::before { top: -2px; }
 .tag-row.drop-after::after { bottom: -2px; }
 .grip { display: grid; place-items: center; width: 16px; color: var(--ic-muted); cursor: grab; }
-.grip svg { width: 14px; height: 14px; fill: currentColor; }
+.grip svg { width: 16px; height: 16px; fill: currentColor; }
 .tag-row label { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .tag-row input, .rest-toggle input { accent-color: var(--ic-accent); margin: 0; }
 .tag-count { font-size: 11px; color: var(--ic-muted); }
@@ -421,10 +417,17 @@ body.details-open { overflow: hidden; }
   display: grid; place-items: center; width: 24px; height: 24px; padding: 0;
   border: 0; border-radius: var(--radius-pill); background: none; color: var(--ic-icons); cursor: default;
 }
-.move-btn svg { width: 12px; height: 12px; fill: currentColor; }
+.move-btn svg { width: 16px; height: 16px; fill: currentColor; }
 .move-btn:hover:not(:disabled) { background: var(--ic-popup-hover); }
 .move-btn:disabled { opacity: .3; }
 .rest-toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 4px 2px 0; }
 
 /* Ungrouped list ("Group by: None") has no heading. */
 .group.no-head { padding-top: 4px; }
+
+/* Icons from the amicons round-thin set (shared/icons.js). */
+.icon { flex: none; fill: currentColor; }
+.suggest-icon { width: 14px; height: 14px; color: var(--ic-muted); }
+.tag-suggestion { display: inline-flex; align-items: center; gap: 4px; }
+.tag-suggestion .icon { width: 12px; height: 12px; color: var(--ic-muted); }
+.tag-remove .icon, .token-remove .icon { width: 12px; height: 12px; }

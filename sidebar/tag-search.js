@@ -1,6 +1,7 @@
 // Search field with tag suggestions: typing shows matching tags; picking one turns it into a
 // filter chip inside the field. Implements the ARIA combobox pattern on the input.
 import { matchTags } from './model.js';
+import { createIcon } from '../shared/icons.js';
 
 export class TagSearch {
   /**
@@ -72,7 +73,7 @@ export class TagSearch {
         const count = document.createElement('span');
         count.className = 'suggest-count';
         count.textContent = String(n);
-        li.append(name, count);
+        li.append(createIcon('hash', 'suggest-icon'), name, count);
         return li;
       }),
     );
@@ -124,7 +125,7 @@ export class TagSearch {
         x.className = 'token-remove';
         x.dataset.remove = tag;
         x.setAttribute('aria-label', `Remove tag filter ${tag}`);
-        x.textContent = '×';
+        x.appendChild(createIcon('close'));
         chip.appendChild(x);
         return chip;
       }),
