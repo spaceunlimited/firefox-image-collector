@@ -78,6 +78,8 @@ svg { flex: none; }
 }
 #search::placeholder { color: color-mix(in srgb, var(--ic-field-text) 60%, transparent); }
 
+.page-title { display: none; }
+
 .icon-btn {
   display: grid; place-items: center; flex: none;
   width: 32px; height: 32px; padding: 0;
@@ -273,7 +275,7 @@ body[data-view=list] .menu-btn[aria-expanded=true] { background: var(--ic-active
 /* ---------- details (panel subview) ---------- */
 
 .details { position: fixed; inset: 0; z-index: 20; overflow-y: auto; background: var(--ic-bg); }
-body.details-open { overflow: hidden; }
+body[data-mode=sidebar].details-open { overflow: hidden; }
 .details-inner { display: grid; gap: 14px; padding: 8px 8px 64px; }
 .details-head { position: relative; display: flex; align-items: center; justify-content: center; height: 32px; }
 .details-head .details-close { position: absolute; left: 0; top: 0; }
@@ -431,3 +433,35 @@ body.details-open { overflow: hidden; }
 .tag-suggestion { display: inline-flex; align-items: center; gap: 4px; }
 .tag-suggestion .icon { width: 12px; height: 12px; color: var(--ic-muted); }
 .tag-remove .icon, .token-remove .icon { width: 12px; height: 12px; }
+
+/* ---------- full tab (sidebar.html?mode=tab) ---------- */
+
+/* Content is capped and centered; --gutter is the side padding that does it. Details sit in a column on the right. */
+body[data-mode=tab] { --gutter: max(24px, calc((100% - 1440px) / 2)); --details-w: 400px; }
+body[data-mode=tab].details-open { padding-right: var(--details-w); }
+
+body[data-mode=tab] .toolbar { gap: 4px; padding: 12px var(--gutter); }
+body[data-mode=tab] .page-title { display: block; flex: none; margin: 0 20px 0 0; font-size: 15px; font-weight: 600; }
+body[data-mode=tab] .search-wrap { flex: 0 1 560px; }
+body[data-mode=tab] #options-btn { margin-left: auto; }
+body[data-mode=tab] .custom-range,
+body[data-mode=tab] .filter-bar { padding-inline: var(--gutter); }
+body[data-mode=tab] .banner { margin-inline: var(--gutter); }
+body[data-mode=tab] .group { padding: 4px var(--gutter) 12px; }
+body[data-mode=tab] .group-head { font-size: 14px; }
+
+body[data-mode=tab][data-view=grid] .cards { grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 18px 14px; }
+body[data-mode=tab][data-view=grid] .title { display: block; margin-bottom: 1px; }
+body[data-mode=tab][data-view=list] .card { grid-template-columns: 64px 1fr; gap: 14px; }
+body[data-mode=tab][data-view=list] .thumb { width: 64px; height: 64px; }
+
+body[data-mode=tab] .card.is-open .thumb { outline: 2px solid var(--ic-accent); outline-offset: 2px; }
+body[data-mode=tab][data-view=list] .card.is-open { background: var(--ic-highlight); }
+body[data-mode=tab][data-view=list] .card.is-open .thumb { outline: 0; }
+
+body[data-mode=tab] .details { left: auto; width: var(--details-w); border-left: 1px solid var(--ic-separator); }
+body[data-mode=tab] .details-inner { padding: 12px 20px 64px; }
+body[data-mode=tab] .details-preview,
+body[data-mode=tab] .details-preview img { max-height: 360px; }
+
+body[data-mode=tab] .notice { max-width: 480px; margin-inline: auto; bottom: 16px; }

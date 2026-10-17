@@ -13,9 +13,20 @@ import { createNotice } from './notice.js';
 import { CardMenu } from './menu.js';
 import { DetailsPanel } from './details.js';
 
-hydrateIcons(document);
-
 const $ = (id) => document.getElementById(id);
+
+// The same page runs in the sidebar and as a full tab (sidebar.html?mode=tab). In the tab, details open
+// beside the grid instead of covering it, so their button closes rather than goes back.
+const isTab = new URLSearchParams(document.location.search).get('mode') === 'tab';
+document.body.dataset.mode = isTab ? 'tab' : 'sidebar';
+if (isTab) {
+  const close = $('details-tpl').content.querySelector('.details-close');
+  close.querySelector('svg').dataset.icon = 'close';
+  close.setAttribute('aria-label', 'Close');
+  close.title = 'Close (Esc)';
+}
+
+hydrateIcons(document);
 const els = {
   search: $('search'),
   optionsBtn: $('options-btn'),
@@ -75,8 +86,18 @@ const details = new DetailsPanel($('details'), {
   onAction: (action, id) => runAction(action, id),
   onOpenUrl: openUrl,
   onTagsChange: saveTags,
-  onClose: (id) => els.list.querySelector(`.card[data-id="${CSS.escape(id ?? '')}"] .menu-btn`)?.focus(),
+  onClose: (id) => {
+    markOpenCard();
+    els.list.querySelector(`.card[data-id="${CSS.escape(id ?? '')}"] .menu-btn`)?.focus();
+  },
 });
+
+// Highlights the card shown in the details panel (visible in the tab, where both are on screen).
+function markOpenCard() {
+  for (const card of els.list.querySelectorAll('.card.is-open')) card.classList.remove('is-open');
+  const id = details.openId;
+  if (id) els.list.querySelector(`.card[data-id="${CSS.escape(id)}"]`)?.classList.add('is-open');
+}
 
 const allTags = () => tagCounts(state.entries).map(([t]) => t);
 
@@ -94,6 +115,7 @@ function render() {
     now,
   );
   renderGroups(els.list, groups, { thumbs, now, collapsed: state.collapsed, sort: state.sort });
+  markOpenCard();
   els.empty.hidden = state.entries.length > 0;
   els.noResults.hidden = state.entries.length === 0 || visible.length > 0;
   const total = state.entries.length;
@@ -221,9 +243,11 @@ function runAction(action, id) {
       break;
     case 'details':
       details.open(entry, allTags());
+      markOpenCard();
       break;
     case 'tags':
       details.open(entry, allTags(), { focusTags: true });
+      markOpenCard();
       break;
     case 'delete':
       remove(entry);

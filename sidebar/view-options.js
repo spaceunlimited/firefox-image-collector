@@ -53,6 +53,8 @@ export class ViewOptions {
     const r = this.button.getBoundingClientRect();
     const top = r.bottom + 6;
     this.el.style.top = `${top}px`;
+    // The sidebar is narrow, so the popover keeps to its right edge; in the tab it sits under its button.
+    if (document.body.dataset.mode === 'tab') this.el.style.right = `${Math.max(8, innerWidth - r.right)}px`;
     this.el.style.maxHeight = `${Math.max(160, innerHeight - top - 8)}px`;
   }
 

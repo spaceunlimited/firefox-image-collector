@@ -101,8 +101,8 @@ async function open(pagePath, { scheme = 'light', theme = {}, access = true, wid
 }
 
 const shots = [];
-async function sidebarShot(name, opts, act) {
-  const { page, ctx } = await open('sidebar/sidebar.html', opts);
+async function sidebarShot(name, opts, act, pagePath = 'sidebar/sidebar.html') {
+  const { page, ctx } = await open(pagePath, opts);
   await page.waitForSelector('#list .card');
   await page.waitForTimeout(300);
   if (act) await act(page);
@@ -138,6 +138,15 @@ await sidebarShot('13-ash-in-dark-mode', { theme: ASH_LIGHT, scheme: 'dark' });
 await sidebarShot('14-ash-in-light-mode', { theme: ASH_LIGHT, scheme: 'light' });
 await sidebarShot('15-ash-dark-menu', { theme: ASH_LIGHT, scheme: 'dark' }, async (p) => { await p.hover('#list .card'); await p.click('#list .card .menu-btn'); });
 await sidebarShot('16-ash-dark-details', { theme: ASH_LIGHT, scheme: 'dark' }, async (p) => { await p.hover('#list .card'); await p.click('#list .card .menu-btn'); await p.click('#card-menu [data-action=tags]'); });
+
+// Full tab view (sidebar.html?mode=tab).
+const TAB = 'sidebar/sidebar.html?mode=tab';
+const WIDE = { width: 1400, height: 860 };
+await sidebarShot('17-tab-grid-light', WIDE, null, TAB);
+await sidebarShot('18-tab-details-dark', { ...WIDE, scheme: 'dark' }, async (p) => { await p.hover('#list .card'); await p.click('#list .card .menu-btn'); await p.click('#card-menu [data-action=details]'); }, TAB);
+await sidebarShot('19-tab-list-light', WIDE, async (p) => { await p.click('#view-toggle'); await p.hover('#list .card'); await p.click('#list .card .menu-btn'); await p.click('#card-menu [data-action=details]'); }, TAB);
+await sidebarShot('20-tab-options-light', WIDE, (p) => p.click('#options-btn'), TAB);
+await sidebarShot('21-tab-grid-1920', { width: 1920, height: 900 }, null, TAB);
 
 for (const scheme of ['light', 'dark']) {
   const { page, ctx } = await open('options/options.html', { scheme, width: 900, height: 1100 });
