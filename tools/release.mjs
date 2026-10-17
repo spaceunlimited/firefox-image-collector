@@ -8,16 +8,28 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 
 const REPO = 'spaceunlimited/firefox-image-collector';
+const OWNER = REPO.split('/')[0];
 const DRY = process.argv.includes('--dry-run');
 const fail = (msg) => {
   console.error(`release: ${msg}`);
   process.exit(1);
 };
 const out = (cmd, args) => execFileSync(cmd, args, { encoding: 'utf8' }).trim();
-const run = (cmd, args) => {
+const run = (cmd, args, env) => {
   console.log(`$ ${cmd} ${args.join(' ')}`);
-  if (!DRY) execFileSync(cmd, args, { stdio: 'inherit' });
+  if (!DRY) execFileSync(cmd, args, { stdio: 'inherit', env: { ...process.env, ...env } });
 };
+
+// Releases need write access. If gh's active account lacks it but the repo owner's account is
+// also signed in to gh, use that account's token for the release only.
+function ghEnv() {
+  if (process.env.GH_TOKEN) return {};
+  try {
+    return { GH_TOKEN: out('gh', ['auth', 'token', '-u', OWNER]) };
+  } catch {
+    return {};
+  }
+}
 
 const manifest = JSON.parse(await readFile('manifest.json', 'utf8'));
 const { version } = manifest;
@@ -48,11 +60,12 @@ console.log(`updates.json entry:\n${JSON.stringify(entry, null, 2)}`);
 if (!DRY) await writeFile('updates.json', json);
 
 run('git', ['add', 'updates.json']);
-run('git', ['commit', '-m', `Release ${tag}`]);
+// Re-running after a failed release finds updates.json already committed; skip the commit then.
+if (DRY || out('git', ['diff', '--cached', '--name-only'])) run('git', ['commit', '-m', `Release ${tag}`]);
 run('git', ['push', 'origin', 'main']);
 
 const notes = `Signed by Mozilla for self-distribution.
 
 **Install:** download \`${asset}\` below, open it in Firefox (or drag it onto a Firefox window) and confirm. Firefox checks for updates automatically.`;
-run('gh', ['release', 'create', tag, assetPath, '--repo', REPO, '--target', 'main', '--title', `Image Collector ${version}`, '--notes', notes]);
+run('gh', ['release', 'create', tag, assetPath, '--repo', REPO, '--target', 'main', '--title', `Image Collector ${version}`, '--notes', notes], ghEnv());
 console.log(DRY ? 'Dry run: nothing was changed.' : `Released ${tag}: https://github.com/${REPO}/releases/tag/${tag}`);
