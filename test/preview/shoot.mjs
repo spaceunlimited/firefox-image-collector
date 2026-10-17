@@ -89,7 +89,7 @@ async function open(pagePath, { scheme = 'light', theme = {}, access = true, wid
   const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 2, colorScheme: scheme });
   await ctx.route('http://ext.test/**', async (route) => {
     const rel = new URL(route.request().url()).pathname.replace(/^\//, '');
-    const type = rel.endsWith('.js') ? 'text/javascript' : rel.endsWith('.css') ? 'text/css' : 'text/html';
+    const type = rel.endsWith('.js') ? 'text/javascript' : rel.endsWith('.css') ? 'text/css' : rel.endsWith('.svg') ? 'image/svg+xml' : 'text/html';
     route.fulfill({ body: await readFile(path.join(REPO, rel)), contentType: type });
   });
   const page = await ctx.newPage();

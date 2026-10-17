@@ -1,8 +1,8 @@
 """Generates the extension's UI icons from the amicons "round-thin" set.
 
 Writes:
-  shared/icons.js      path data + helpers for icons created in the sidebar and settings pages
-  sidebar/icons.css    data-URL icons for CSS masks
+  shared/icons.js      path data + helpers for icons in the sidebar and settings pages
+  sidebar/icons.css    data-URL icons for CSS masks (also used by the settings page)
   content/probe.js     the toast's icons, between the "icons:start" and "icons:end" markers
 
 Usage: python3 -I tools/gen-icons.py [path to amicons/round-thin]
@@ -37,8 +37,17 @@ ICONS = {
     'image': 'image',
     'hash': 'hash',
     'plus': 'plus',
+    # Settings page
+    'globe': 'globe',
+    'ok-circle': 'check-circle',
+    'alert-circle': 'exclamation-circle',
+    'history': 'history',
+    'archive': 'archive',
+    'export': 'arrow-to-bracket-down',
+    'import': 'arrow-from-bracket-up',
+    'storage': 'database',
 }
-CSS_MASKS = ['image', 'close']
+CSS_MASKS = ['image', 'close', 'chevron']
 TOAST = {'ok': 'check', 'warn': 'warning', 'progress': 'progress'}
 
 

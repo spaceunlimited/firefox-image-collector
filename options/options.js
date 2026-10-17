@@ -2,6 +2,9 @@ import { ALL_SITES, hasAllSites } from '../shared/permissions.js';
 import * as store from '../shared/store.js';
 import { buildJson, buildCsv, parseImport } from '../shared/export.js';
 import { formatBytes } from '../shared/format.js';
+import { hydrateIcons, createIcon } from '../shared/icons.js';
+
+hydrateIcons(document);
 
 const $ = (id) => document.getElementById(id);
 
@@ -35,7 +38,7 @@ const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 async function refreshAccess() {
   const on = await hasAllSites();
   $('access-status').dataset.on = String(on);
-  $('access-status').textContent = on ? 'Allowed on all websites' : 'Not allowed';
+  $('access-status').replaceChildren(createIcon(on ? 'ok-circle' : 'alert-circle'), on ? 'Allowed on all websites' : 'Not allowed');
   $('access-toggle').textContent = on ? 'Turn off' : 'Allow access to all websites';
   $('access-toggle').dataset.on = String(on);
 }
@@ -115,6 +118,8 @@ $('export-csv').addEventListener('click', async () => {
 });
 
 // ---------- import ----------
+
+$('import-choose').addEventListener('click', () => $('import-file').click());
 
 $('import-file').addEventListener('change', async (e) => {
   const file = e.target.files?.[0];

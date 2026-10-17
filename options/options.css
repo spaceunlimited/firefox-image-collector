@@ -1,65 +1,85 @@
-/* Styled after Firefox's in-content pages (about:preferences). */
+/* Styled after Firefox's Settings page (about:preferences) with Nova design tokens. */
 :root {
   color-scheme: light dark;
-  /* Firefox Nova design tokens, as used by about:preferences. */
-  --bg: light-dark(#f7f6fb, #131215);
-  --text: light-dark(#180e30, #f2f0f8);
+  --bg: light-dark(#f7f6fb, #131215);                     /* --background-color-canvas */
+  --card: light-dark(#ffffff, #171519);                   /* --background-color-box */
+  --text: light-dark(#180e30, #f2f0f8);                   /* --text-color */
   --muted: color-mix(in srgb, var(--text) 69%, transparent);
-  --separator: color-mix(in srgb, var(--text) 14%, transparent);
-  --btn: light-dark(#d6d5da, #515054);
-  --btn-hover: light-dark(#b7b6ba, #817f84);
-  --btn-active: light-dark(#949297, #a6a4a9);
-  --primary: light-dark(#764edd, #b89cff);
-  --primary-hover: light-dark(#5939a8, #d4c1ff);
-  --primary-text: light-dark(#ffffff, #252428);
-  --ok: light-dark(#008865, #90e3c6);
+  --card-border: light-dark(color-mix(in srgb, currentColor 10%, transparent), color-mix(in srgb, currentColor 6%, transparent));
+  --card-shadow: 0 .25px .75px light-dark(rgba(0, 0, 0, .02), rgba(0, 0, 0, .06)), 0 2px 6px light-dark(rgba(0, 0, 0, .04), rgba(0, 0, 0, .12));
+  --box-border: color-mix(in srgb, var(--text) 18%, transparent);
+  --accent: light-dark(#764edd, #b89cff);                 /* --color-accent-primary */
+  --btn-text: light-dark(#161423, #fcfbff);               /* --button-text-color */
+  --btn-hover: light-dark(rgba(117, 102, 159, .14), rgba(182, 170, 217, .16));
+  --btn-active: light-dark(rgba(117, 102, 159, .26), rgba(182, 170, 217, .28));
+  --ok: light-dark(#008865, #4acca6);
   --warn: light-dark(#b26100, #fbcc77);
   --danger: light-dark(#c52d4f, #ff8998);
   --danger-hover: light-dark(#961e3d, #ffb6bf);
-  --focus: var(--primary);
+  --on-danger: light-dark(#ffffff, #252428);
+  --focus: var(--accent);
   font: message-box;
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 1.45;
   color: var(--text);
   background: var(--bg);
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { margin: 0 auto; padding: 40px 32px 64px; max-width: 720px; }
+body { margin: 0 auto; padding: 48px 24px 72px; max-width: 760px; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+svg { width: 20px; height: 20px; flex: none; fill: currentColor; }
 
-h1 { font-size: 22px; font-weight: 600; margin: 0 0 24px; }
-h2 { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
-p { margin: 0 0 12px; color: var(--muted); }
-section { padding: 24px 0; border-top: 1px solid var(--separator); }
+.page-head { display: flex; align-items: center; gap: 12px; margin: 0 0 28px 4px; }
+.page-head h1 { margin: 0; font-size: 26px; font-weight: 700; }
 
-.row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
-.status { font-weight: 600; }
-.status[data-on=true] { color: var(--ok); }
-.status[data-on=false] { color: var(--warn); }
-.msg { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
-.msg:empty { display: none; }
-.msg.error { color: var(--danger); }
-
-button, select, input[type=file]::file-selector-button {
-  font: inherit; font-size: 13px; font-weight: 600;
-  min-height: 32px; padding: 0 16px; border: 0; border-radius: 24px; cursor: default;
-  background: var(--btn); color: var(--text);
+.cards { display: grid; gap: 20px; }
+.card {
+  display: grid; gap: 12px; padding: 20px;
+  background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; box-shadow: var(--card-shadow);
 }
-select { font-weight: 400; padding: 0 28px 0 14px; border-radius: 8px; }
-button:hover, select:hover, input[type=file]::file-selector-button:hover { background: var(--btn-hover); }
-button:hover:active { background: var(--btn-active); }
-button.primary { background: var(--primary); color: var(--primary-text); }
-button.primary:hover { background: var(--primary-hover); }
-button.danger { color: var(--danger); }
-button.danger-solid { background: var(--danger); color: light-dark(#fff, #252428); }
-button.danger-solid:hover { background: var(--danger-hover); }
-input[type=file] { font: inherit; font-size: 13px; color: var(--muted); }
-input[type=file]::file-selector-button { margin-right: 12px; }
-label { color: var(--text); }
+.card h2 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 17px; font-weight: 700; }
+.desc { margin: -4px 0 4px; color: var(--muted); }
+
+/* Bordered group of rows, divided by lines (moz-box-group). */
+.box { border: 1px solid var(--box-border); border-radius: 12px; overflow: hidden; }
+.box-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px 16px; flex-wrap: wrap;
+  min-height: 56px; padding: 10px 16px 10px 18px;
+}
+.box-row + .box-row { border-top: 1px solid var(--box-border); }
+.row-label { display: flex; align-items: center; gap: 12px; flex: 1 1 220px; min-width: 0; }
+.row-sub { display: block; font-size: 13px; color: var(--muted); }
+
+.status { display: inline-flex; align-items: center; gap: 10px; }
+.status[data-on=true] svg { color: var(--ok); }
+.status[data-on=false] svg { color: var(--warn); }
+
+/* Default buttons: same background as the surface, accent outline (Nova). */
+.btn, select {
+  font: inherit; font-size: 14px; font-weight: 600; min-height: 32px; padding: 0 18px; cursor: default;
+  border: 1px solid var(--accent); border-radius: 9999px; background: transparent; color: var(--btn-text);
+}
+.btn:hover, select:hover { background: var(--btn-hover); }
+.btn:hover:active { background: var(--btn-active); }
+.btn.danger { border-color: var(--danger); color: var(--danger); }
+.btn.danger:hover { background: color-mix(in srgb, var(--danger) 12%, transparent); }
+.btn.destructive { border-color: transparent; background: var(--danger); color: var(--on-danger); }
+.btn.destructive:hover { background: var(--danger-hover); }
+select { appearance: none; font-weight: 400; padding: 0 38px 0 16px; border-radius: 8px; border-color: var(--box-border); }
+.select-wrap { position: relative; display: inline-flex; }
+.select-wrap::after {
+  content: ""; position: absolute; right: 12px; top: 50%; width: 16px; height: 16px; margin-top: -8px; pointer-events: none;
+  background: currentColor; mask: var(--icon-chevron) center / contain no-repeat;
+}
+select:hover { border-color: var(--accent); }
 
 .confirm {
-  display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; padding: 12px 16px;
-  border-radius: 16px; background: color-mix(in srgb, var(--danger) 12%, var(--bg));
+  display: grid; gap: 12px; padding: 14px 16px;
+  border-radius: 12px; background: color-mix(in srgb, var(--danger) 10%, var(--card));
 }
-.confirm-text { flex: 1 1 100%; color: var(--text); }
+.confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+.msg { margin: 0; font-size: 13px; color: var(--muted); }
+.msg:empty { display: none; }
+.msg.error { color: var(--danger); }
