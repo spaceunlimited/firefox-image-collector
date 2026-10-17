@@ -156,7 +156,7 @@ body[data-view=grid] .i-grid, body[data-view=list] .i-list { display: none; }
   position: relative; display: block; width: 100%; padding: 0; overflow: hidden;
   border: 0; border-radius: var(--radius-m); background: var(--ic-tile); cursor: default;
 }
-.thumb img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .thumb.no-thumb img { visibility: hidden; }
 .thumb.no-thumb::after {
   content: ""; position: absolute; inset: 0; margin: auto; width: 24px; height: 24px;
