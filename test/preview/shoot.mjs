@@ -116,6 +116,8 @@ await sidebarShot('1-grid-light', {});
 await sidebarShot('2-grid-dark', { scheme: 'dark' });
 await sidebarShot('2b-grid-hover-light', {}, (p) => p.hover('#list .card:nth-child(2)'));
 await sidebarShot('2c-grid-hover-dark', { scheme: 'dark' }, (p) => p.hover('#list .card:nth-child(2)'));
+await sidebarShot('2d-menu-btn-hover-light', {}, (p) => p.hover('#list .card:nth-child(2) .menu-btn'));
+await sidebarShot('2e-menu-btn-hover-dark', { scheme: 'dark' }, (p) => p.hover('#list .card:nth-child(2) .menu-btn'));
 await sidebarShot('3-list-light', {}, (p) => p.click('#view-toggle'));
 await sidebarShot('4-list-dark', { scheme: 'dark' }, (p) => p.click('#view-toggle'));
 await sidebarShot('5-menu-light', {}, async (p) => { await p.hover('#list .card'); await p.click('#list .card .menu-btn'); });
