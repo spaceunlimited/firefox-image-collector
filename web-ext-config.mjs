@@ -3,10 +3,15 @@ export default {
   ignoreFiles: [
     'PLAN.md',
     'README.md',
+    'TESTING.md',
     'package.json',
     'package-lock.json',
     'web-ext-config.mjs',
+    'updates.json',
     'test',
+    'tools',
+    'references',
     'node_modules',
+    'web-ext-artifacts',
   ],
 };

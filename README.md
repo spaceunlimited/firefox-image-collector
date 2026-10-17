@@ -3,6 +3,29 @@
 Firefox extension that adds **Copy Image + Collect** to the image context menu. It copies the image to the
 clipboard and records where it was found. A sidebar lists everything collected. See `PLAN.md` for the spec.
 
+## Install
+
+1. Download the latest `image-collector-x.y.z.xpi` from
+   [Releases](https://github.com/spaceunlimited/firefox-image-collector/releases).
+2. Open the file in Firefox (or drag it onto a Firefox window) and confirm **Add**.
+3. Optional: about:addons → Image Collector → **Permissions** → allow access to all websites, so images from
+   sites that block other origins can be copied.
+
+The add-on is signed by Mozilla for self-distribution and updates itself: Firefox checks
+[`updates.json`](updates.json) in this repository. Requires Firefox 142 or later.
+
+## Release a new version
+
+One-time setup: create API credentials at <https://addons.mozilla.org/developers/addon/api/key/>.
+
+```sh
+# 1. Bump "version" in manifest.json and package.json, commit.
+# 2. Sign with Mozilla (unlisted = self-distribution). Keys stay in your shell, never in the repo.
+WEB_EXT_API_KEY=user:… WEB_EXT_API_SECRET=… npm run sign
+# 3. Add the version to updates.json, push, and create the GitHub release with the signed .xpi.
+npm run release            # npm run release -- --dry-run shows what it would do
+```
+
 ## Run during development
 
 There are two documented ways. Both install the extension temporarily: it is removed when Firefox closes.
@@ -35,7 +58,7 @@ Permissions. To use the menu in private windows, enable **Run in Private Windows
 
 ```sh
 npm test            # unit tests plus jsdom smoke tests of the sidebar and settings pages
-npm run lint        # web-ext lint
+npm run lint        # web-ext lint (self-hosted: allows update_url)
 ```
 
 Manual test rounds are tracked in `TESTING.md`.

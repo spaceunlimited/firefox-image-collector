@@ -1,18 +1,38 @@
 {
   "manifest_version": 3,
   "name": "Image Collector",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Copy an image and remember where you found it.",
   "browser_specific_settings": {
     "gecko": {
       "id": "image-collector@gregorfinger.de",
       "strict_min_version": "142.0",
-      "data_collection_permissions": { "required": ["none"] }
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      },
+      "update_url": "https://raw.githubusercontent.com/spaceunlimited/firefox-image-collector/main/updates.json"
     }
   },
-  "permissions": ["menus", "clipboardWrite", "storage", "unlimitedStorage", "scripting", "activeTab", "theme"],
-  "host_permissions": ["<all_urls>"],
-  "background": { "scripts": ["background/background.js"], "type": "module" },
+  "permissions": [
+    "menus",
+    "clipboardWrite",
+    "storage",
+    "unlimitedStorage",
+    "scripting",
+    "activeTab",
+    "theme"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "scripts": [
+      "background/background.js"
+    ],
+    "type": "module"
+  },
   "action": {
     "default_title": "Image Collector",
     "default_icon": "icons/icon.svg"
@@ -23,6 +43,13 @@
     "default_icon": "icons/icon.svg",
     "open_at_install": true
   },
-  "options_ui": { "page": "options/options.html", "open_in_tab": true },
-  "icons": { "48": "icons/icon.svg", "96": "icons/icon.svg" }
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+  "icons": {
+    "48": "icons/icon.svg",
+    "96": "icons/icon.svg"
+  },
+  "homepage_url": "https://github.com/spaceunlimited/firefox-image-collector"
 }
