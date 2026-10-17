@@ -17,7 +17,27 @@ Check items off by changing `[ ]` to `[x]`. Note failures under the item.
 - [ ] Open the sidebar with the toolbar button
 - [ ] Open the add-on's **Inspect** console to watch for errors
 
-## Round 8: Nova look, Ash and other themes
+## Round 9: grouping, sorting and tag search
+
+- [ ] `about:debugging` → **Reload** on Image Collector
+
+### Options popup (sliders button next to search)
+- [ ] Opens below the button; Escape or a click outside closes it
+- [ ] **Group by: Tag** shows one group per tag; images with two tags appear in both
+- [ ] In "Tag groups", drag a tag to a new position: the groups follow. Alt+↑/↓ on a row does the same
+- [ ] Untick a tag: its group disappears. Untick "Show images not in a group": the Untagged/Other group disappears
+- [ ] **Group by: None** shows one list without headings
+- [ ] **Oldest first** reverses the order, also inside each group
+- [ ] Close and reopen the sidebar: grouping, sort and tag order are remembered
+
+### Search
+- [ ] No tag row under the search bar anymore
+- [ ] Type the first letters of a tag: matching tags appear below the field; ↑/↓ and Enter, or a click, picks one
+- [ ] The picked tag shows as a chip in the field and filters the images; a second tag narrows further
+- [ ] Backspace in the empty field removes the last chip; × on a chip removes it too
+- [ ] Plain text search (site name, page title) still works, with or without chips
+
+## Round 8 results
 
 The sidebar now follows Firefox's Nova design (rounded search, round buttons, violet accent) and knows
 the dark colors of Mozilla's 11 Nova themes, including Ash.
