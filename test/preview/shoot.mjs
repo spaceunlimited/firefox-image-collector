@@ -124,7 +124,11 @@ await sidebarShot('4-list-dark', { scheme: 'dark' }, (p) => p.click('#view-toggl
 await sidebarShot('5-menu-light', {}, async (p) => { await p.hover('#list .card'); await p.click('#list .card .menu-btn'); });
 await sidebarShot('6-details-light', {}, async (p) => { await p.hover('#list .card'); await p.click('#list .card .menu-btn'); await p.click('#card-menu [data-action=details]'); });
 await sidebarShot('7-details-dark', { scheme: 'dark' }, async (p) => { await p.hover('#list .card'); await p.click('#list .card .menu-btn'); await p.click('#card-menu [data-action=tags]'); });
-await sidebarShot('8-filter-menu-dark', { scheme: 'dark' }, async (p) => { await p.click('#filter-btn'); });
+await sidebarShot('8-options-light', {}, async (p) => { await p.click('#options-btn'); });
+await sidebarShot('8b-options-tag-dark', { scheme: 'dark' }, async (p) => { await p.click('#options-btn'); await p.click('[data-group=tag]'); await p.hover('.tag-row'); });
+await sidebarShot('8c-grouped-by-tag-light', {}, async (p) => { await p.click('#options-btn'); await p.click('[data-group=tag]'); await p.keyboard.press('Escape'); });
+await sidebarShot('8d-tag-suggest-light', {}, async (p) => { await p.click('#search'); await p.keyboard.type('mo'); });
+await sidebarShot('8e-tag-token-light', {}, async (p) => { await p.click('#search'); await p.keyboard.type('mo'); await p.keyboard.press('Enter'); await p.waitForTimeout(200); });
 await sidebarShot('9-purple-theme-grid', { theme: PURPLE, scheme: 'dark' });
 await sidebarShot('10-purple-theme-menu', { theme: PURPLE, scheme: 'dark' }, async (p) => { await p.hover('#list .card'); await p.click('#list .card .menu-btn'); });
 await sidebarShot('11-no-access-banner', { access: false });
