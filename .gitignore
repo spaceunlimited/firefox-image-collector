@@ -7,3 +7,7 @@ test/preview/out/
 test/Screenshot*.png
 references/
 .amo-upload-uuid
+
+# Internal docs, kept locally only
+PLAN.md
+TESTING.md
