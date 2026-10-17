@@ -70,6 +70,8 @@ if Playwright's browser isn't installed.
 - Right-click an image → **Copy Image + Collect**.
 - Toolbar button: toggles the sidebar. Each card has a ⋯ menu: re-copy, open image, open source page,
   details, edit tags, delete (with Undo).
+- Full tab: the ↗ button in the sidebar, or right-click the toolbar button → **Open in a Tab**. Same
+  collection on a wide page, with details beside the grid.
 - Gear button in the sidebar: settings tab with site access, automatic cleanup, export (JSON, CSV),
   import (JSON), storage usage and delete everything.
 

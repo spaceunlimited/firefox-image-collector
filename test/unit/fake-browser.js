@@ -44,7 +44,7 @@ export function installFakeBrowser({ failSetWhen } = {}) {
       data.clear();
     },
   };
-  const calls = { tabsCreate: [], messages: [], openOptions: 0 };
+  const calls = { tabsCreate: [], tabsUpdate: [], windowsUpdate: [], messages: [], openOptions: 0 };
   const permListeners = { added: new Set(), removed: new Set() };
   let granted = true;
   const themeListeners = new Set();
@@ -59,7 +59,13 @@ export function installFakeBrowser({ failSetWhen } = {}) {
         for (const fn of themeListeners) fn({ theme: info });
       },
     },
-    windows: { getCurrent: async () => ({ id: 1 }) },
+    windows: {
+      getCurrent: async () => ({ id: 1 }),
+      async update(id, opts) {
+        calls.windowsUpdate.push([id, opts]);
+        return { id, ...opts };
+      },
+    },
     permissions: {
       contains: async () => granted,
       async request() {
@@ -84,6 +90,10 @@ export function installFakeBrowser({ failSetWhen } = {}) {
         calls.tabsCreate.push(opts);
         return { id: 1, ...opts };
       },
+      async update(id, opts) {
+        calls.tabsUpdate.push([id, opts]);
+        return { id, ...opts };
+      },
     },
     runtime: {
       messageHandler: async () => ({ ok: true }),
@@ -96,6 +106,8 @@ export function installFakeBrowser({ failSetWhen } = {}) {
         return Promise.resolve();
       },
       getURL: (path) => `moz-extension://test/${path}`,
+      contexts: [],
+      getContexts: async () => api.runtime.contexts,
     },
   };
   globalThis.browser = api;

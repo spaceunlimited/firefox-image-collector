@@ -46,6 +46,7 @@ ICONS = {
     'export': 'arrow-to-bracket-down',
     'import': 'arrow-from-bracket-up',
     'storage': 'database',
+    'open-tab': 'arrow-from-square-up-right',
 }
 CSS_MASKS = ['image', 'close', 'chevron']
 TOAST = {'ok': 'check', 'warn': 'warning', 'progress': 'progress'}

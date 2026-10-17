@@ -12,6 +12,7 @@ import { ThumbLoader } from './thumbs.js';
 import { createNotice } from './notice.js';
 import { CardMenu } from './menu.js';
 import { DetailsPanel } from './details.js';
+import { openCollectionTab } from '../shared/open-tab.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -20,6 +21,7 @@ const $ = (id) => document.getElementById(id);
 const isTab = new URLSearchParams(document.location.search).get('mode') === 'tab';
 document.body.dataset.mode = isTab ? 'tab' : 'sidebar';
 if (isTab) {
+  $('open-tab').hidden = true;
   const close = $('details-tpl').content.querySelector('.details-close');
   close.querySelector('svg').dataset.icon = 'close';
   close.setAttribute('aria-label', 'Close');
@@ -36,6 +38,7 @@ const els = {
   from: $('from'),
   to: $('to'),
   viewToggle: $('view-toggle'),
+  openTab: $('open-tab'),
   openSettings: $('open-settings'),
   list: $('list'),
   empty: $('empty'),
@@ -298,6 +301,12 @@ els.viewToggle.addEventListener('click', () => {
   store.setSettings({ view: state.view });
 });
 
+els.openTab.addEventListener('click', () => {
+  openCollectionTab().catch((e) => {
+    console.warn('[sidebar] cannot open tab', e);
+    notice.show("Couldn't open the collection in a tab.");
+  });
+});
 els.openSettings.addEventListener('click', () => browser.runtime.openOptionsPage());
 
 // permissions.request must run directly in the click handler.

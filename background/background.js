@@ -4,8 +4,10 @@ import { flashBadge, toast } from './feedback.js';
 import { captureFromMenu } from './capture.js';
 import { recopy } from './recopy.js';
 import { ensureSchema, getSettings, purgeOlderThan } from '../shared/store.js';
+import { openCollectionTab } from '../shared/open-tab.js';
 
 const MENU_ID = 'copy-and-collect';
+const OPEN_TAB_ID = 'open-tab';
 
 console.log('[background] started', new Date().toLocaleTimeString());
 
@@ -18,12 +20,15 @@ async function applyRetention() {
   }
 }
 
-// Creates the menu item. Safe to call repeatedly: a duplicate id is reported and ignored.
+// Creates the menu items: the image context menu entry and "Open in a tab" on the toolbar button.
+// Safe to call repeatedly: a duplicate id is reported and ignored.
 function ensureMenu() {
-  browser.menus.create({ id: MENU_ID, title: 'Copy Image + Collect', contexts: ['image'] }, () => {
+  const done = () => {
     const err = browser.runtime.lastError;
     if (err && !/already exists/i.test(err.message)) console.warn('[background] menu create failed', err.message);
-  });
+  };
+  browser.menus.create({ id: MENU_ID, title: 'Copy Image + Collect', contexts: ['image'] }, done);
+  browser.menus.create({ id: OPEN_TAB_ID, title: 'Open in a Tab', contexts: ['action'] }, done);
 }
 
 browser.runtime.onInstalled.addListener(async () => {
@@ -38,6 +43,10 @@ ensureMenu();
 
 browser.menus.onClicked.addListener((info, tab) => {
   console.log('[background] menu click', info.menuItemId, info.srcUrl?.slice(0, 120));
+  if (info.menuItemId === OPEN_TAB_ID) {
+    openCollectionTab().catch((e) => console.error('[background] cannot open tab', e));
+    return;
+  }
   if (info.menuItemId !== MENU_ID || !tab) return;
   if (info.mediaType !== 'image' || !info.srcUrl) return;
   captureFromMenu(info, tab)

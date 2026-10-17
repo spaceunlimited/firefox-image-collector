@@ -101,6 +101,21 @@ test('thumbnail opens the latest source page; file: pages show a notice', async 
   assert.equal(fake.calls.tabsCreate.length, 1);
 });
 
+test('open in a tab opens the collection, or switches to the open one', async () => {
+  const url = 'moz-extension://test/sidebar/sidebar.html?mode=tab';
+  const before = fake.calls.tabsCreate.length;
+  click(doc.getElementById('open-tab'));
+  await waitFor(() => fake.calls.tabsCreate.length === before + 1, 'tabs.create');
+  assert.equal(fake.calls.tabsCreate.at(-1).url, url);
+  fake.api.runtime.contexts = [{ contextType: 'TAB', documentUrl: url, tabId: 7, windowId: 3 }];
+  click(doc.getElementById('open-tab'));
+  await waitFor(() => fake.calls.tabsUpdate.length === 1, 'tabs.update');
+  assert.deepEqual(fake.calls.tabsUpdate[0], [7, { active: true }]);
+  assert.deepEqual(fake.calls.windowsUpdate[0], [3, { focused: true }]);
+  assert.equal(fake.calls.tabsCreate.length, before + 1);
+  fake.api.runtime.contexts = [];
+});
+
 test('card menu opens, disables what is unavailable, and closes on Escape', () => {
   const btn = cardFor(pngId).querySelector('.menu-btn');
   click(btn);
