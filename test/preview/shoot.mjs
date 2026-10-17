@@ -35,7 +35,7 @@ for (const [file, host, title, w, h, at, tags] of items) {
   const r = await store.recordCapture({
     at, kind: 'http', imageUrl: `https://cdn.${host}/${file ?? 'header.jpg'}`, pageUrl: `https://${host}/item`,
     pageTitle: title, copied: Boolean(file), reason: file ? undefined : 'cors', width: w, height: h,
-    thumb: file ? await img(file) : null, mime: 'image/jpeg', bytes: 48_000,
+    thumb: file ? await img(file) : null, mime: { png: 'image/png', gif: 'image/gif', webp: 'image/webp' }[file?.split('.').pop()] ?? 'image/jpeg', bytes: 48_000,
   });
   if (tags.length) await store.updateEntry(r.entry.id, (e) => { e.tags = tags; });
   if (file === 'photo.png') {
@@ -114,6 +114,8 @@ async function sidebarShot(name, opts, act) {
 
 await sidebarShot('1-grid-light', {});
 await sidebarShot('2-grid-dark', { scheme: 'dark' });
+await sidebarShot('2b-grid-hover-light', {}, (p) => p.hover('#list .card:nth-child(2)'));
+await sidebarShot('2c-grid-hover-dark', { scheme: 'dark' }, (p) => p.hover('#list .card:nth-child(2)'));
 await sidebarShot('3-list-light', {}, (p) => p.click('#view-toggle'));
 await sidebarShot('4-list-dark', { scheme: 'dark' }, (p) => p.click('#view-toggle'));
 await sidebarShot('5-menu-light', {}, async (p) => { await p.hover('#list .card'); await p.click('#list .card .menu-btn'); });

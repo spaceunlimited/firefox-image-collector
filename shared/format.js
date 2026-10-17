@@ -7,6 +7,21 @@ export function formatBytes(n) {
   return `${(n / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+const TYPE_LABELS = {
+  'image/jpeg': 'JPG', 'image/png': 'PNG', 'image/webp': 'WEBP', 'image/gif': 'GIF', 'image/avif': 'AVIF',
+  'image/svg+xml': 'SVG', 'image/bmp': 'BMP', 'image/x-icon': 'ICO', 'image/vnd.microsoft.icon': 'ICO',
+  'image/heic': 'HEIC', 'image/jxl': 'JXL', 'image/tiff': 'TIFF',
+};
+
+// Short file type for labels: "PNG", "JPG", "SVG". Empty when unknown.
+export function typeLabel(mime) {
+  if (!mime) return '';
+  const known = TYPE_LABELS[mime.toLowerCase()];
+  if (known) return known;
+  const sub = mime.split('/')[1]?.split(/[+;]/)[0];
+  return sub && sub.length <= 5 ? sub.toUpperCase() : '';
+}
+
 export function formatDims(w, h) {
   return w && h ? `${w} × ${h}` : '';
 }

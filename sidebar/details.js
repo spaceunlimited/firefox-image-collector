@@ -1,6 +1,6 @@
 // Details panel: preview, facts, tag editor, image addresses and capture history.
 import { domainOf } from '../shared/url.js';
-import { formatDims, formatBytes, relativeTime, absoluteTime, FAILURE_TEXT } from '../shared/format.js';
+import { formatDims, formatBytes, relativeTime, absoluteTime, typeLabel, FAILURE_TEXT } from '../shared/format.js';
 import { normalizeTag, canOpenImage, suggestTags } from './model.js';
 
 const template = document.getElementById('details-tpl');
@@ -157,7 +157,7 @@ export class DetailsPanel {
 
     this.hooks.loadPreview(entry, $('.details-preview img'));
     $('.f-dims').textContent = formatDims(entry.width, entry.height) || 'Unknown';
-    $('.f-mime').textContent = entry.mime?.replace('image/', '').toUpperCase() || 'Unknown';
+    $('.f-mime').textContent = typeLabel(entry.mime) || 'Unknown';
     $('.f-bytes').textContent = formatBytes(entry.bytes) || 'Unknown';
     $('.f-first').textContent = absoluteTime(entry.firstCapturedAt);
     $('.f-last').textContent = absoluteTime(entry.lastCapturedAt);

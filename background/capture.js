@@ -1,6 +1,6 @@
 // Capture pipeline: probe ∥ fetch → (page fallback) → decode → copy → thumbnail → store.
 import { probeImage, extractImage } from '../content/probe.js';
-import { kindOf, chooseImageUrl } from '../shared/url.js';
+import { kindOf, chooseImageUrl, mimeFromUrl } from '../shared/url.js';
 import { formatBytes } from '../shared/format.js';
 import { hasAllSites } from '../shared/permissions.js';
 import { recordCapture, StorageFullError } from '../shared/store.js';
@@ -97,7 +97,7 @@ async function obtainBytes(info, tab, meta, firstFetch) {
     console.log('[capture] page fallback', extracted?.dataUrl ? 'got image' : extracted?.error ?? 'no result');
     if (extracted?.dataUrl) {
       const fromPage = await fetchImage(extracted.dataUrl);
-      if (fromPage.bytes) got = fromPage;
+      if (fromPage.bytes) got = { ...fromPage, fromPage: true };
     } else if (extracted?.error === 'tainted') {
       got = { error: 'cors' };
     } else if (extracted?.error === 'notloaded' && got.error === 'nobytes') {
@@ -156,6 +156,8 @@ async function capture(info, tab, progress) {
 
   if (got.bytes) {
     Object.assign(result, await processBytes(got.bytes, got.contentType, meta ?? {}));
+    // A canvas copy from the page is always PNG; the address says more about the original.
+    if (got.fromPage && !got.contentType?.startsWith('image/')) result.mime = mimeFromUrl(imageUrl) ?? null;
     if (kind !== 'http') {
       result.label = `${kind === 'data' ? 'Embedded' : 'Generated'} ${result.mime ?? 'image'} · ${formatBytes(result.bytes)}`;
       if (got.bytes.byteLength <= MAX_FULL_BYTES) {

@@ -87,3 +87,16 @@ test('suggestTags', async () => {
   assert.deepEqual(suggestTags(all, [], 'logo'), []);
   assert.equal(suggestTags(Array.from({ length: 20 }, (_, i) => `t${i}`), [], '').length, 8);
 });
+
+test('typeLabel and mimeFromUrl', async () => {
+  const { typeLabel } = await import('../../shared/format.js');
+  const { mimeFromUrl } = await import('../../shared/url.js');
+  assert.equal(typeLabel('image/jpeg'), 'JPG');
+  assert.equal(typeLabel('image/svg+xml'), 'SVG');
+  assert.equal(typeLabel('image/x-portable-pixmap'), '');
+  assert.equal(typeLabel('image/qoi'), 'QOI');
+  assert.equal(typeLabel(null), '');
+  assert.equal(mimeFromUrl('https://a.com/x/photo.JPG?w=200'), 'image/jpeg');
+  assert.equal(mimeFromUrl('https://a.com/image'), null);
+  assert.equal(mimeFromUrl('not a url'), null);
+});

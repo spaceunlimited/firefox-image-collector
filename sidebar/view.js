@@ -1,6 +1,6 @@
 // DOM rendering for the sidebar. All user data goes through textContent or attributes.
 import { domainOf } from '../shared/url.js';
-import { formatDims, relativeTime, shortRelativeTime, absoluteTime, FAILURE_TEXT } from '../shared/format.js';
+import { formatDims, relativeTime, shortRelativeTime, absoluteTime, typeLabel, FAILURE_TEXT } from '../shared/format.js';
 import { latestCapture } from './model.js';
 
 const cardTemplate = document.getElementById('card-tpl');
@@ -89,6 +89,10 @@ export function renderCard(entry, { thumbs, now }) {
   }
 
   card.querySelector('.dims').textContent = formatDims(entry.width, entry.height);
+  const type = typeLabel(entry.mime);
+  const typeEl = card.querySelector('.type-label');
+  typeEl.textContent = type;
+  typeEl.hidden = !type;
   const time = card.querySelector('.time');
   time.dateTime = new Date(entry.lastCapturedAt).toISOString();
   time.dataset.ts = String(entry.lastCapturedAt);

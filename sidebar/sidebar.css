@@ -184,6 +184,18 @@ body[data-view=grid] .i-grid, body[data-view=list] .i-list { display: none; }
 .card:hover .menu-btn, .card:focus-within .menu-btn, .menu-btn[aria-expanded=true] { opacity: 1; }
 @media (hover: none) { .menu-btn { opacity: 1; } }
 
+/* File type next to the ⋯ button, grid only, on hover like the button. */
+.type-label {
+  position: absolute; z-index: 2; top: 8px; right: 38px; pointer-events: none;
+  height: 20px; padding: 0 8px; border-radius: var(--radius-pill);
+  font-size: 10px; font-weight: 700; line-height: 20px; letter-spacing: .04em;
+  background: var(--ic-popup); color: var(--ic-popup-text); box-shadow: 0 1px 4px rgba(0, 0, 0, .25);
+  opacity: 0; transition: opacity .1s ease;
+}
+.card:hover .type-label, .card:focus-within .type-label, .card:has(.menu-btn[aria-expanded=true]) .type-label { opacity: 1; }
+@media (hover: none) { .type-label { opacity: 1; } }
+body[data-view=list] .type-label { display: none; }
+
 .info { min-width: 0; padding: 4px 2px 0; }
 .title, .domain { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .meta { display: flex; justify-content: space-between; gap: 6px; font-size: 11px; color: var(--ic-muted); white-space: nowrap; }
