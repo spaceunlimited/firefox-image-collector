@@ -4,78 +4,111 @@
   <meta charset="utf-8">
   <meta name="color-scheme" content="light dark">
   <title>Image Collector settings</title>
+  <link rel="stylesheet" href="../sidebar/icons.css">
   <link rel="stylesheet" href="options.css">
   <script type="module" src="options.js"></script>
 </head>
 <body>
-  <h1>Image Collector</h1>
+  <header class="page-head">
+    <img src="../icons/icon.svg" alt="" width="28" height="28">
+    <h1>Image Collector</h1>
+  </header>
 
-  <section>
-    <h2>Site access</h2>
-    <p>
-      With access to all websites, the extension downloads the original image file itself. Without it,
-      images from sites that block other origins are saved but can't be copied.
-    </p>
-    <div class="row">
-      <span id="access-status" class="status"></span>
-      <button id="access-toggle" type="button"></button>
-    </div>
-  </section>
+  <main class="cards">
+    <section class="card" aria-labelledby="h-access">
+      <h2 id="h-access"><svg data-icon="globe"></svg>Site access</h2>
+      <p class="desc">
+        With access to all websites, the extension downloads the original image file itself. Without it,
+        images from sites that block other origins are saved but can't be copied.
+      </p>
+      <div class="box">
+        <div class="box-row">
+          <span id="access-status" class="status"></span>
+          <button id="access-toggle" class="btn" type="button"></button>
+        </div>
+      </div>
+    </section>
 
-  <section>
-    <h2>Automatic cleanup</h2>
-    <div class="row">
-      <label for="auto-delete">Delete images last collected more than</label>
-      <select id="auto-delete">
-        <option value="">Never</option>
-        <option value="30">30 days ago</option>
-        <option value="90">90 days ago</option>
-        <option value="180">180 days ago</option>
-        <option value="365">1 year ago</option>
-      </select>
-    </div>
-    <div id="auto-delete-confirm" class="confirm" hidden>
-      <span class="confirm-text"></span>
-      <button type="button" class="danger-solid" data-confirm="yes">Delete and turn on</button>
-      <button type="button" data-confirm="no">Cancel</button>
-    </div>
-    <p id="auto-delete-msg" class="msg" role="status"></p>
-  </section>
+    <section class="card" aria-labelledby="h-cleanup">
+      <h2 id="h-cleanup"><svg data-icon="history"></svg>Automatic cleanup</h2>
+      <div class="box">
+        <div class="box-row">
+          <label for="auto-delete">Delete images last collected more than</label>
+          <span class="select-wrap"><select id="auto-delete">
+            <option value="">Never</option>
+            <option value="30">30 days ago</option>
+            <option value="90">90 days ago</option>
+            <option value="180">180 days ago</option>
+            <option value="365">1 year ago</option>
+          </select></span>
+        </div>
+      </div>
+      <div id="auto-delete-confirm" class="confirm" hidden>
+        <span class="confirm-text"></span>
+        <div class="confirm-actions">
+          <button type="button" class="btn" data-confirm="no">Cancel</button>
+          <button type="button" class="btn destructive" data-confirm="yes">Delete and turn on</button>
+        </div>
+      </div>
+      <p id="auto-delete-msg" class="msg" role="status"></p>
+    </section>
 
-  <section>
-    <h2>Export</h2>
-    <p>JSON is a full backup including thumbnails and tags. CSV has one row per capture, for spreadsheets.</p>
-    <div class="row">
-      <button id="export-json" class="primary" type="button">Export JSON</button>
-      <button id="export-csv" type="button">Export CSV</button>
-    </div>
-    <p id="export-msg" class="msg" role="status"></p>
-  </section>
+    <section class="card" aria-labelledby="h-backup">
+      <h2 id="h-backup"><svg data-icon="archive"></svg>Backup</h2>
+      <p class="desc">Save your collection to a file, or bring one back. Importing merges with what you have, without duplicates.</p>
+      <div class="box">
+        <div class="box-row">
+          <span class="row-label">
+            <svg data-icon="export"></svg>
+            <span>Export as JSON<span class="row-sub">Full backup with thumbnails and tags</span></span>
+          </span>
+          <button id="export-json" class="btn" type="button">Export</button>
+        </div>
+        <div class="box-row">
+          <span class="row-label">
+            <svg data-icon="export"></svg>
+            <span>Export as CSV<span class="row-sub">One row per capture, for spreadsheets</span></span>
+          </span>
+          <button id="export-csv" class="btn" type="button">Export</button>
+        </div>
+        <div class="box-row">
+          <span class="row-label">
+            <svg data-icon="import"></svg>
+            <span>Import from JSON<span class="row-sub">A file exported from Image Collector</span></span>
+          </span>
+          <button id="import-choose" class="btn" type="button">Choose file…</button>
+          <input id="import-file" type="file" accept=".json,application/json" hidden>
+        </div>
+      </div>
+      <p id="export-msg" class="msg" role="status"></p>
+      <p id="import-msg" class="msg" role="status"></p>
+    </section>
 
-  <section>
-    <h2>Import</h2>
-    <p>Imports a JSON export. Images already in the collection are merged, not duplicated.</p>
-    <div class="row">
-      <input id="import-file" type="file" accept=".json,application/json">
-    </div>
-    <p id="import-msg" class="msg" role="status"></p>
-  </section>
+    <section class="card" aria-labelledby="h-storage">
+      <h2 id="h-storage"><svg data-icon="storage"></svg>Storage</h2>
+      <div class="box">
+        <div class="box-row"><span id="storage-info"></span></div>
+      </div>
+    </section>
 
-  <section>
-    <h2>Storage</h2>
-    <p id="storage-info"></p>
-  </section>
-
-  <section>
-    <h2>Delete everything</h2>
-    <p>Removes all collected images. Settings are kept.</p>
-    <button id="clear-all" type="button" class="danger">Delete all images…</button>
-    <div id="clear-confirm" class="confirm" hidden>
-      <span class="confirm-text"></span>
-      <button type="button" class="danger-solid" data-confirm="yes">Delete all</button>
-      <button type="button" data-confirm="no">Cancel</button>
-    </div>
-    <p id="clear-msg" class="msg" role="status"></p>
-  </section>
+    <section class="card" aria-labelledby="h-delete">
+      <h2 id="h-delete"><svg data-icon="delete"></svg>Delete everything</h2>
+      <p class="desc">Removes all collected images. Settings are kept.</p>
+      <div class="box">
+        <div class="box-row">
+          <span>Delete all collected images</span>
+          <button id="clear-all" class="btn danger" type="button">Delete all…</button>
+        </div>
+      </div>
+      <div id="clear-confirm" class="confirm" hidden>
+        <span class="confirm-text"></span>
+        <div class="confirm-actions">
+          <button type="button" class="btn" data-confirm="no">Cancel</button>
+          <button type="button" class="btn destructive" data-confirm="yes">Delete all</button>
+        </div>
+      </div>
+      <p id="clear-msg" class="msg" role="status"></p>
+    </section>
+  </main>
 </body>
 </html>
