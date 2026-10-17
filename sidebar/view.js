@@ -2,21 +2,9 @@
 import { domainOf } from '../shared/url.js';
 import { formatDims, relativeTime, shortRelativeTime, absoluteTime, typeLabel, FAILURE_TEXT } from '../shared/format.js';
 import { latestCapture } from './model.js';
+import { createIcon } from '../shared/icons.js';
 
 const cardTemplate = document.getElementById('card-tpl');
-
-const SVG_NS = 'http://www.w3.org/2000/svg';
-
-function chevron() {
-  const svg = document.createElementNS(SVG_NS, 'svg');
-  svg.setAttribute('viewBox', '0 0 16 16');
-  svg.setAttribute('class', 'chevron');
-  svg.setAttribute('aria-hidden', 'true');
-  const path = document.createElementNS(SVG_NS, 'path');
-  path.setAttribute('d', 'M3.2 5.5 4.3 4.4 8 8.1l3.7-3.7 1.1 1.1L8 10.3z');
-  svg.appendChild(path);
-  return svg;
-}
 
 /** Day groups like Firefox's History sidebar; `collapsed` holds group keys that are folded. */
 export function renderGroups(container, groups, { thumbs, now = Date.now(), collapsed = new Set() }) {
@@ -47,7 +35,7 @@ export function renderGroups(container, groups, { thumbs, now = Date.now(), coll
     const count = document.createElement('span');
     count.className = 'group-count';
     count.textContent = String(group.entries.length);
-    head.append(chevron(), label, count);
+    head.append(createIcon('chevron', 'chevron'), label, count);
     section.appendChild(head);
     if (!isCollapsed) {
       const cards = document.createElement('div');

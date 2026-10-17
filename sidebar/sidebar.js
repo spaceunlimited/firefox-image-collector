@@ -3,6 +3,7 @@ import * as store from '../shared/store.js';
 import { FAILURE_TEXT } from '../shared/format.js';
 import { ALL_SITES, hasAllSites } from '../shared/permissions.js';
 import { followTheme } from '../shared/theme.js';
+import { hydrateIcons } from '../shared/icons.js';
 import { filterEntries, groupEntries, orderTags, tagCounts, latestCapture, canOpenImage, SORTS, GROUPINGS } from './model.js';
 import { renderGroups, refreshTimes } from './view.js';
 import { TagSearch } from './tag-search.js';
@@ -11,6 +12,8 @@ import { ThumbLoader } from './thumbs.js';
 import { createNotice } from './notice.js';
 import { CardMenu } from './menu.js';
 import { DetailsPanel } from './details.js';
+
+hydrateIcons(document);
 
 const $ = (id) => document.getElementById(id);
 const els = {

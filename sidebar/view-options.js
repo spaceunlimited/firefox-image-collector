@@ -1,21 +1,5 @@
 // "View options" popover: grouping, sort, date range, and which tags form groups in what order.
-const SVG_NS = 'http://www.w3.org/2000/svg';
-
-function icon(d) {
-  const svg = document.createElementNS(SVG_NS, 'svg');
-  svg.setAttribute('viewBox', '0 0 16 16');
-  svg.setAttribute('aria-hidden', 'true');
-  const path = document.createElementNS(SVG_NS, 'path');
-  path.setAttribute('d', d);
-  svg.appendChild(path);
-  return svg;
-}
-
-const ICONS = {
-  grip: 'M5.5 3a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zm5 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zm-5 4.75a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zm5 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zm-5 4.75a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zm5 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5z',
-  up: 'M8 3.5 13.3 8.8l-1.1 1.1L8 5.7 3.8 9.9 2.7 8.8z',
-  down: 'M8 12.5 2.7 7.2l1.1-1.1L8 10.3l4.2-4.2 1.1 1.1z',
-};
+import { createIcon } from '../shared/icons.js';
 
 export class ViewOptions {
   /**
@@ -107,7 +91,7 @@ export class ViewOptions {
     li.draggable = true;
     const grip = document.createElement('span');
     grip.className = 'grip';
-    grip.appendChild(icon(ICONS.grip));
+    grip.appendChild(createIcon('grip'));
     const label = document.createElement('label');
     const box = document.createElement('input');
     box.type = 'checkbox';
@@ -119,7 +103,7 @@ export class ViewOptions {
     num.textContent = String(count);
     const moves = document.createElement('span');
     moves.className = 'moves';
-    for (const [dir, d, disabled] of [['up', ICONS.up, i === 0], ['down', ICONS.down, i === n - 1]]) {
+    for (const [dir, disabled] of [['up', i === 0], ['down', i === n - 1]]) {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'move-btn';
@@ -127,7 +111,7 @@ export class ViewOptions {
       b.disabled = disabled;
       b.setAttribute('aria-label', `Move ${tag} ${dir}`);
       b.title = `Move ${dir} (Alt+${dir === 'up' ? '↑' : '↓'})`;
-      b.appendChild(icon(d));
+      b.appendChild(createIcon(dir));
       moves.appendChild(b);
     }
     li.append(grip, label, num, moves);
