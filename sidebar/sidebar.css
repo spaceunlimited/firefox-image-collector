@@ -171,7 +171,7 @@ body[data-view=grid] .i-grid, body[data-view=list] .i-list { display: none; }
 }
 .warn { top: 4px; left: 4px; padding: 0; width: 20px; background: var(--ic-warn); }
 .warn svg { width: 12px; height: 12px; fill: light-dark(#ffffff, #252428); }
-.count-badge { bottom: 4px; right: 4px; }
+
 
 .menu-btn {
   position: absolute; z-index: 2; top: 4px; right: 4px;
@@ -187,14 +187,13 @@ body[data-view=grid] .menu-btn[aria-expanded=true] { background: color-mix(in sr
 .card:hover .menu-btn, .card:focus-within .menu-btn, .menu-btn[aria-expanded=true] { opacity: 1; }
 @media (hover: none) { .menu-btn { opacity: 1; } }
 
-/* File type next to the ⋯ button, grid only, on hover like the button. */
-.type-label {
-  position: absolute; z-index: 2; top: 8px; right: 38px; pointer-events: none;
-  height: 20px; padding: 0 8px; border-radius: var(--radius-pill);
-  font-size: 10px; font-weight: 700; line-height: 20px; letter-spacing: .04em;
-  background: var(--ic-popup); color: var(--ic-popup-text); box-shadow: 0 1px 4px rgba(0, 0, 0, .25);
-  opacity: 0; transition: opacity .1s ease;
+/* File type, styled like the capture counter and shown left of it on hover (grid only). */
+.badges {
+  position: absolute; z-index: 1; right: 4px; bottom: 4px;
+  display: flex; gap: 4px; pointer-events: none;
 }
+.badges .badge { position: static; }
+.type-label { letter-spacing: .03em; opacity: 0; transition: opacity .1s ease; }
 .card:hover .type-label, .card:focus-within .type-label, .card:has(.menu-btn[aria-expanded=true]) .type-label { opacity: 1; }
 @media (hover: none) { .type-label { opacity: 1; } }
 body[data-view=list] .type-label { display: none; }
