@@ -39,6 +39,12 @@ function setupDom(html, { contentType, url = 'http://localhost:8000/page.html' }
       get display() {
         return own.display ?? 'inline';
       },
+      get width() {
+        return own.width ?? '';
+      },
+      get height() {
+        return own.height ?? '';
+      },
     };
   };
   Object.assign(globalThis, {
@@ -169,6 +175,19 @@ test('probeSvg sets width/height from the rendered size when attributes are miss
   assert.ok(out.svgText.includes('height="24"'));
   assert.equal(out.renderedWidth, 48);
   assert.equal(out.renderedHeight, 24);
+});
+
+test('probeSvg uses the content box, not the border box, for the baked size', async () => {
+  setupDom('<svg id="s" viewBox="0 0 24 12" style="border: 1px solid red"><rect id="r"/></svg>');
+  const svg = doc.getElementById('s');
+  rectOf(svg, 98, 50); // border box: content 96×48 plus a 1px border on each side
+  styles.set(svg, { width: '96px', height: '48px' });
+  targets.set(1, doc.getElementById('r'));
+  const out = await probeSvg(1);
+  assert.ok(out.svgText.includes('width="96"'));
+  assert.ok(out.svgText.includes('height="48"'));
+  assert.equal(out.renderedWidth, 96);
+  assert.equal(out.renderedHeight, 48);
 });
 
 test('probeSvg skips style inlining for huge SVGs', async () => {

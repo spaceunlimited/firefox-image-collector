@@ -239,12 +239,17 @@ export async function probeSvg(targetId) {
   const needsXlink = [clone, ...clone.querySelectorAll('*')].some((n) => n.getAttributeNS(XLINKNS, 'href') != null);
   if (needsXlink && !clone.hasAttribute('xmlns:xlink')) clone.setAttributeNS(XMLNSNS, 'xmlns:xlink', XLINKNS);
 
-  // A standalone file needs an intrinsic size; CSS-sized SVGs have none.
+  // A standalone file needs an intrinsic size; CSS-sized SVGs have none. Use the CSS
+  // content box: getBoundingClientRect would include borders and padding.
   const isAbs = (v) => /^\s*\d+(\.\d+)?\s*(px)?\s*$/.test(v ?? '');
+  const px = (v) => (/^\d+(\.\d+)?px$/.test(v ?? '') ? parseFloat(v) : null);
+  const rootCs = window.getComputedStyle(svg);
   const rect = svg.getBoundingClientRect();
-  if ((!isAbs(svg.getAttribute('width')) || !isAbs(svg.getAttribute('height'))) && rect.width && rect.height) {
-    clone.setAttribute('width', String(Math.round(rect.width)));
-    clone.setAttribute('height', String(Math.round(rect.height)));
+  const width = px(rootCs.width) ?? rect.width;
+  const height = px(rootCs.height) ?? rect.height;
+  if ((!isAbs(svg.getAttribute('width')) || !isAbs(svg.getAttribute('height'))) && width && height) {
+    clone.setAttribute('width', String(Math.round(width)));
+    clone.setAttribute('height', String(Math.round(height)));
   }
 
   const svgText = new XMLSerializer().serializeToString(clone);
@@ -260,8 +265,8 @@ export async function probeSvg(targetId) {
     svgText,
     copied,
     styled,
-    renderedWidth: Math.round(rect.width * dpr),
-    renderedHeight: Math.round(rect.height * dpr),
+    renderedWidth: Math.round(width * dpr),
+    renderedHeight: Math.round(height * dpr),
   };
 }
 
