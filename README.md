@@ -83,3 +83,7 @@ npm run fixtures                       # serves test/fixtures on port 8000
 ```
 
 Open `http://localhost:8000/`. Images loaded from `127.0.0.1:8000` count as cross-origin.
+
+## License
+
+[MIT](LICENSE)
