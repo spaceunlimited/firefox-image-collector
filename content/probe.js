@@ -94,6 +94,223 @@ export function probeImage(targetId) {
   };
 }
 
+// True when the right-clicked element is an SVG the extension can capture: inside an
+// inline <svg>, an <object>/<embed> showing an SVG, or anywhere in a standalone SVG
+// document (the probe then runs inside that frame). Kept minimal: it runs on every
+// menus.onShown to decide whether the SVG menu item appears.
+export function probeSvgPresence(targetId) {
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const isSvgRoot = (n) => n?.localName === 'svg' && n.namespaceURI === SVGNS;
+  if (isSvgRoot(document.documentElement)) return true;
+  const el = browser.menus.getTargetElement(targetId);
+  if (!el) return false;
+  if (el.closest?.('svg')) return true;
+  const tag = el.localName;
+  if (tag !== 'object' && tag !== 'embed') return false;
+  const url = tag === 'object' ? el.getAttribute('data') : el.getAttribute('src');
+  let inner = null;
+  try {
+    inner = el.contentDocument?.documentElement ?? null;
+  } catch {
+    // Cross-origin document: judge by type and URL alone.
+  }
+  return (
+    (el.getAttribute('type') ?? '').toLowerCase().includes('svg') || /\.svg([?#]|$)/i.test(url ?? '') || isSvgRoot(inner)
+  );
+}
+
+// Captures the SVG at the right-clicked element and copies its markup as text.
+// Returns { svgText, copied, styled, renderedWidth, renderedHeight } for an inline <svg>,
+// { standalone: true, url } when the background should fetch the original file instead
+// (<object>/<embed>, or the probe runs inside a standalone SVG document), or null.
+export async function probeSvg(targetId) {
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const XLINKNS = 'http://www.w3.org/1999/xlink';
+  const XMLNSNS = 'http://www.w3.org/2000/xmlns/';
+  const MAX_STYLED_ELEMENTS = 1000;
+  const isSvgRoot = (n) => n?.localName === 'svg' && n.namespaceURI === SVGNS;
+  // Inside an SVG document the original file says more than any serialization.
+  if (isSvgRoot(document.documentElement)) return { standalone: true, url: location.href };
+  const el = browser.menus.getTargetElement(targetId);
+  if (!el) return null;
+  const tag = el.localName;
+  if (tag === 'object' || tag === 'embed') {
+    const raw = tag === 'object' ? el.getAttribute('data') : el.getAttribute('src');
+    let inner = null;
+    try {
+      inner = el.contentDocument?.documentElement ?? null;
+    } catch {
+      // Cross-origin document.
+    }
+    const svgish = (el.getAttribute('type') ?? '').toLowerCase().includes('svg') || /\.svg([?#]|$)/i.test(raw ?? '') || isSvgRoot(inner);
+    if (!svgish || !raw) return null;
+    try {
+      return { standalone: true, url: new URL(raw, document.baseURI).href };
+    } catch {
+      return null;
+    }
+  }
+  let svg = el.closest?.('svg');
+  if (!svg) return null;
+  while (svg.ownerSVGElement) svg = svg.ownerSVGElement;
+  const clone = svg.cloneNode(true);
+
+  // CSS-driven presentation (classes, currentColor) is lost on serialization, so bake
+  // computed values in where they differ from the SVG initial values. url(#…) values are
+  // skipped (the markup keeps those references, and computed ones may point at the page).
+  const INITIAL = {
+    fill: 'rgb(0, 0, 0)',
+    'fill-opacity': '1',
+    'fill-rule': 'nonzero',
+    stroke: 'none',
+    'stroke-width': '1px',
+    'stroke-opacity': '1',
+    'stroke-linecap': 'butt',
+    'stroke-linejoin': 'miter',
+    'stroke-dasharray': 'none',
+    'stroke-dashoffset': '0px',
+    opacity: '1',
+    visibility: 'visible',
+    'stop-color': 'rgb(0, 0, 0)',
+    'stop-opacity': '1',
+  };
+  const originals = [svg, ...svg.querySelectorAll('*')];
+  const copies = [clone, ...clone.querySelectorAll('*')];
+  const styled = originals.length <= MAX_STYLED_ELEMENTS;
+  if (styled) {
+    for (let i = 0; i < originals.length; i += 1) {
+      const cs = window.getComputedStyle(originals[i]);
+      const decls = [];
+      for (const [prop, initial] of Object.entries(INITIAL)) {
+        const value = cs.getPropertyValue(prop);
+        if (value && value !== initial && !value.includes('url(')) decls.push(`${prop}: ${value}`);
+      }
+      if (cs.display === 'none') decls.push('display: none');
+      if (decls.length) {
+        // Appended after any existing inline style, so the baked values win like the
+        // computed ones did on the page.
+        const prev = copies[i].getAttribute('style');
+        copies[i].setAttribute('style', (prev ? `${prev.replace(/;\s*$/, '')}; ` : '') + decls.join('; '));
+      }
+    }
+  }
+
+  // Sprite sheets and shared defs keep <use>/gradient targets elsewhere in the page;
+  // clone whatever the serialized SVG references by id (and what those clones reference).
+  const URL_ATTRS = ['fill', 'stroke', 'filter', 'clip-path', 'mask', 'marker-start', 'marker-mid', 'marker-end'];
+  const collectIds = (scope) => {
+    const ids = [];
+    for (const n of [scope, ...scope.querySelectorAll('*')]) {
+      if (n.localName === 'use') {
+        const ref = n.getAttribute('href') ?? n.getAttributeNS(XLINKNS, 'href');
+        if (ref?.startsWith('#')) ids.push(ref.slice(1));
+      }
+      for (const a of URL_ATTRS) {
+        const m = n.getAttribute(a)?.match(/url\(["']?#([^)"']+)/);
+        if (m) ids.push(m[1]);
+      }
+    }
+    return ids;
+  };
+  const have = new Set(Array.from(clone.querySelectorAll('[id]'), (n) => n.id));
+  if (clone.id) have.add(clone.id);
+  let defs = null;
+  let pending = collectIds(clone);
+  for (let pass = 0; pass < 10 && pending.length; pass += 1) {
+    const next = [];
+    for (const id of pending) {
+      if (have.has(id)) continue;
+      have.add(id);
+      const ref = document.getElementById(id);
+      if (!ref) continue;
+      const copy = ref.cloneNode(true);
+      if (!defs) {
+        defs = document.createElementNS(SVGNS, 'defs');
+        clone.appendChild(defs);
+      }
+      defs.appendChild(copy);
+      for (const n of copy.querySelectorAll('[id]')) have.add(n.id);
+      next.push(...collectIds(copy));
+    }
+    pending = next;
+  }
+
+  if (!clone.hasAttribute('xmlns')) clone.setAttributeNS(XMLNSNS, 'xmlns', SVGNS);
+  const needsXlink = [clone, ...clone.querySelectorAll('*')].some((n) => n.getAttributeNS(XLINKNS, 'href') != null);
+  if (needsXlink && !clone.hasAttribute('xmlns:xlink')) clone.setAttributeNS(XMLNSNS, 'xmlns:xlink', XLINKNS);
+
+  // A standalone file needs an intrinsic size; CSS-sized SVGs have none.
+  const isAbs = (v) => /^\s*\d+(\.\d+)?\s*(px)?\s*$/.test(v ?? '');
+  const rect = svg.getBoundingClientRect();
+  if ((!isAbs(svg.getAttribute('width')) || !isAbs(svg.getAttribute('height'))) && rect.width && rect.height) {
+    clone.setAttribute('width', String(Math.round(rect.width)));
+    clone.setAttribute('height', String(Math.round(rect.height)));
+  }
+
+  const svgText = new XMLSerializer().serializeToString(clone);
+  let copied = false;
+  try {
+    await navigator.clipboard.writeText(svgText);
+    copied = true;
+  } catch {
+    // The background falls back to copying from the extension side.
+  }
+  const dpr = window.devicePixelRatio || 1;
+  return {
+    svgText,
+    copied,
+    styled,
+    renderedWidth: Math.round(rect.width * dpr),
+    renderedHeight: Math.round(rect.height * dpr),
+  };
+}
+
+// Fallback when fetching a standalone SVG document failed (CORS, auth-gated URL):
+// serialize the live document instead. Same-origin only; null when it cannot be seen.
+export async function probeSvgDocument(targetId) {
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const isSvgRoot = (n) => n?.localName === 'svg' && n.namespaceURI === SVGNS;
+  let root = isSvgRoot(document.documentElement) ? document.documentElement : null;
+  let rectEl = root;
+  if (!root && targetId != null) {
+    const el = browser.menus.getTargetElement(targetId);
+    const tag = el?.localName;
+    if (tag === 'object' || tag === 'embed') {
+      try {
+        const inner = el.contentDocument?.documentElement ?? null;
+        if (isSvgRoot(inner)) {
+          root = inner;
+          rectEl = el;
+        }
+      } catch {
+        // Cross-origin document.
+      }
+    }
+  }
+  if (!root) return null;
+  const svgText = new XMLSerializer().serializeToString(root);
+  let copied = false;
+  try {
+    await navigator.clipboard.writeText(svgText);
+    copied = true;
+  } catch {
+    // The background falls back to copying from the extension side.
+  }
+  const rect = rectEl.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  return { svgText, copied, renderedWidth: Math.round(rect.width * dpr), renderedHeight: Math.round(rect.height * dpr) };
+}
+
+// Copies text from inside the page, for when the background's clipboard access fails.
+export async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // Fallback when the background cannot fetch the bytes: read a blob: URL from inside
 // the page, or draw the loaded element to a canvas. Cross-origin images taint the canvas.
 export async function extractImage(targetId, url) {
