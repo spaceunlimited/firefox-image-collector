@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "start": "web-ext run --source-dir . --browser-console",
-    "lint": "web-ext lint --source-dir . --self-hosted",
+    "lint": "web-ext lint --source-dir .",
     "build": "web-ext build --source-dir . --overwrite-dest",
     "test": "node --test --test-force-exit 'test/unit/*.test.js'",
     "fixtures": "python3 -m http.server 8000 --directory test/fixtures",
