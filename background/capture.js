@@ -34,7 +34,7 @@ export async function fetchImage(url) {
   }
 }
 
-async function inject(tabId, frameId, func, args) {
+export async function inject(tabId, frameId, func, args) {
   try {
     const [res] = await browser.scripting.executeScript({ target: { tabId, frameIds: [frameId] }, func, args });
     return res?.result ?? null;
