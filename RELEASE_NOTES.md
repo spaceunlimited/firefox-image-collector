@@ -1,4 +1,11 @@
-## New: SVG capture
+Maintenance release, no functional changes.
+
+- The packaged extension no longer contains internal development notes (v1.1.0 accidentally shipped a notes file inside the `.xpi`; the v1.1.0 release has been removed).
+- Image Collector is now licensed under the [MIT license](https://github.com/spaceunlimited/firefox-image-collector/blob/main/LICENSE).
+
+Since the v1.1.0 release was removed, its changelog follows here.
+
+## New in 1.1: SVG capture
 
 Firefox offers no "Copy Image" for SVGs that are embedded directly in a page. Image Collector now does:
 
@@ -8,7 +15,7 @@ Firefox offers no "Copy Image" for SVGs that are embedded directly in a page. Im
 - **`<object>` and `<embed>` SVG documents** are collected as their original file.
 - **Re-copy** from the collection puts the SVG markup on the clipboard again — also for previously collected `.svg` image files.
 
-## Improvements
+## Improvements in 1.1
 
 - The collection opens in a full tab: use the ↗ button in the sidebar or right-click the toolbar button.
 - Clicking an image opens its details instead of the source page (the page is one click further).
