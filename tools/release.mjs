@@ -64,7 +64,9 @@ run('git', ['add', 'updates.json']);
 if (DRY || out('git', ['diff', '--cached', '--name-only'])) run('git', ['commit', '-m', `Release ${tag}`]);
 run('git', ['push', 'origin', 'main']);
 
-const notes = `Signed by Mozilla for self-distribution.
+// RELEASE_NOTES.md (optional) holds the changelog for the upcoming release.
+const changelog = await readFile('RELEASE_NOTES.md', 'utf8').catch(() => '');
+const notes = `${changelog.trim() ? `${changelog.trim()}\n\n---\n\n` : ''}Signed by Mozilla for self-distribution.
 
 **Install:** download \`${asset}\` below, open it in Firefox (or drag it onto a Firefox window) and confirm. Firefox checks for updates automatically.`;
 run('gh', ['release', 'create', tag, assetPath, '--repo', REPO, '--target', 'main', '--title', `Image Collector ${version}`, '--notes', notes], ghEnv());
