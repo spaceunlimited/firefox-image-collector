@@ -11,6 +11,16 @@
               "strict_min_version": "142.0"
             }
           }
+        },
+        {
+          "version": "1.1.0",
+          "update_link": "https://github.com/spaceunlimited/firefox-image-collector/releases/download/v1.1.0/image-collector-1.1.0.xpi",
+          "update_hash": "sha256:14a5598a3944322a9988d3f7ab6faa1328e5442de5c0ba9262e3a555b40506c7",
+          "applications": {
+            "gecko": {
+              "strict_min_version": "142.0"
+            }
+          }
         }
       ]
     }
