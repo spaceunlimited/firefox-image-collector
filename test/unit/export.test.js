@@ -91,6 +91,12 @@ test('sanitizeEntry drops unknown fields and non-image data URLs', () => {
   assert.equal(item.full, 'data:image/png;base64,AAAA');
 });
 
+test('sanitizeEntry keeps the inline kind and coerces unknown kinds to http', () => {
+  const raw = { urls: ['Inline SVG · 1.2 kB'], captures: [{ at: 5 }] };
+  assert.equal(sanitizeEntry({ ...raw, kind: 'inline' }).entry.kind, 'inline');
+  assert.equal(sanitizeEntry({ ...raw, kind: 'weird' }).entry.kind, 'http');
+});
+
 test('mergeEntries keeps the later copy status', () => {
   const base = sanitizeEntry({ urls: ['u'], captures: [{ at: 1 }], copyCount: 1, lastCopy: { status: 'failed', reason: 'cors', at: 1 } }).entry;
   const inc = sanitizeEntry({ urls: ['u'], captures: [{ at: 2 }], copyCount: 3, lastCopy: { status: 'ok', at: 2 } }).entry;

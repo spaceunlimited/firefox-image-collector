@@ -1,5 +1,5 @@
 // Capture pipeline: probe ∥ fetch → (page fallback) → decode → copy → thumbnail → store.
-import { probeImage, extractImage } from '../content/probe.js';
+import { probeImage, extractImage, probeSvg, probeSvgDocument, copyText } from '../content/probe.js';
 import { kindOf, chooseImageUrl, mimeFromUrl } from '../shared/url.js';
 import { formatBytes } from '../shared/format.js';
 import { hasAllSites } from '../shared/permissions.js';
@@ -107,15 +107,47 @@ async function obtainBytes(info, tab, meta, firstFetch) {
   return { imageUrl, got };
 }
 
-function feedbackText(result, { incognito, storageFull, needsPermission }) {
+function feedbackText(result, { incognito, storageFull, needsPermission, svg }) {
   if (storageFull) return { text: 'Not saved: storage is full.', variant: 'warn' };
+  const copiedAs = svg ? 'Copied as SVG' : 'Copied';
   if (incognito) {
     return result.copied
-      ? { text: 'Copied. Not saved in private windows.', variant: 'ok' }
+      ? { text: `${copiedAs}. Not saved in private windows.`, variant: 'ok' }
       : { text: "Couldn't copy.", variant: 'warn' };
   }
-  if (result.copied) return { text: result.scaled ? 'Copied (reduced size) & saved' : 'Copied & saved', variant: 'ok' };
+  if (result.copied) {
+    return { text: result.scaled && !svg ? 'Copied (reduced size) & saved' : `${copiedAs} & saved`, variant: 'ok' };
+  }
   return { text: needsPermission ? 'Saved, not copied. Allow site access in settings.' : 'Saved, not copied.', variant: 'warn' };
+}
+
+// Shared tail of every capture: store the result, then toast and badge the outcome.
+async function persistAndNotify(result, tab, progress, { svg = false } = {}) {
+  let storageFull = false;
+  if (!tab.incognito) {
+    try {
+      await recordCapture(result);
+    } catch (e) {
+      if (!(e instanceof StorageFullError)) throw e;
+      storageFull = true;
+    }
+  }
+  const needsPermission = !result.copied && result.reason === 'cors' && !(await hasAllSites());
+  const { text, variant } = feedbackText(result, { incognito: tab.incognito, storageFull, needsPermission, svg });
+  clearTimeout(progress.timer);
+  await progress.shown; // so the final toast always replaces it
+  flashBadge(tab.id, variant);
+  toast(tab.id, text, variant);
+  console.log('[capture] done', {
+    ms: Date.now() - result.at,
+    imageUrl: result.imageUrl ?? result.label,
+    copied: result.copied,
+    reason: result.reason,
+    mime: result.mime,
+    dims: [result.width, result.height],
+    scaled: result.scaled,
+  });
+  return result;
 }
 
 export async function captureFromMenu(info, tab) {
@@ -169,30 +201,89 @@ async function capture(info, tab, progress) {
     if (kind !== 'http') result.label = `${kind === 'data' ? 'Embedded' : 'Generated'} image`;
   }
 
-  let storageFull = false;
-  if (!tab.incognito) {
-    try {
-      await recordCapture(result);
-    } catch (e) {
-      if (!(e instanceof StorageFullError)) throw e;
-      storageFull = true;
-    }
+  return persistAndNotify(result, tab, progress);
+}
+
+// Firefox lets extension pages write text with the clipboardWrite permission; if that
+// fails (focus rules vary by version), write from inside the page instead.
+async function copyTextToClipboard(text, tabId, frameId) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (e) {
+    console.warn('[capture] background text copy failed', e?.message);
+  }
+  return Boolean(await inject(tabId, frameId, copyText, [text]));
+}
+
+export async function captureSvgFromMenu(info, tab) {
+  const progress = { timer: null, shown: null };
+  progress.timer = setTimeout(() => {
+    progress.shown = toast(tab.id, 'Copying…', 'progress');
+  }, PROGRESS_TOAST_DELAY_MS);
+  try {
+    return await captureSvg(info, tab, progress);
+  } finally {
+    clearTimeout(progress.timer);
+  }
+}
+
+// Captures the SVG under the right-click: a serialized inline <svg>, or the original
+// file behind an <object>/<embed>/standalone SVG document. The clipboard gets the SVG
+// markup as text (it pastes as a vector), not a raster.
+async function captureSvg(info, tab, progress) {
+  const at = Date.now();
+  const frameId = info.frameId ?? 0;
+  // Must run before the target id expires.
+  const probe = await inject(tab.id, frameId, probeSvg, [info.targetElementId ?? null]);
+  console.log('[capture] svg start', {
+    frameId,
+    probe: probe && (probe.standalone ? probe.url?.slice(0, 120) : `inline, ${probe.svgText?.length} chars`),
+  });
+  if (!probe) {
+    clearTimeout(progress.timer);
+    await progress.shown;
+    flashBadge(tab.id, 'warn');
+    toast(tab.id, 'No SVG image found here.', 'warn');
+    return null;
   }
 
-  const needsPermission = !result.copied && result.reason === 'cors' && !(await hasAllSites());
-  const { text, variant } = feedbackText(result, { incognito: tab.incognito, storageFull, needsPermission });
-  clearTimeout(progress.timer);
-  await progress.shown; // so the final toast always replaces it
-  flashBadge(tab.id, variant);
-  toast(tab.id, text, variant);
-  console.log('[capture] done', {
-    ms: Date.now() - at,
-    imageUrl,
-    copied: result.copied,
-    reason: result.reason,
-    mime: result.mime,
-    dims: [result.width, result.height],
-    scaled: result.scaled,
-  });
-  return result;
+  const base = {
+    at,
+    pageUrl: info.pageUrl ?? tab.url ?? '',
+    pageTitle: tab.title ?? '',
+    frameUrl: frameId ? info.frameUrl : undefined,
+    copied: false,
+  };
+
+  let serialized = probe.standalone ? null : probe;
+  let result = null;
+  if (probe.standalone) {
+    const got = await fetchImage(probe.url);
+    if (got.bytes) {
+      const out = await processBytes(got.bytes, got.contentType, {}, { copy: false });
+      result = { ...base, ...out, kind: 'http', imageUrl: probe.url, copied: false };
+      if (result.mime === 'image/svg+xml') {
+        result.copied = await copyTextToClipboard(new TextDecoder().decode(got.bytes), tab.id, frameId);
+      } else {
+        result.reason = 'unsupported';
+      }
+    } else {
+      // The file is out of reach (CORS, auth): serialize the live document instead.
+      serialized = await inject(tab.id, frameId, probeSvgDocument, [info.targetElementId ?? null]);
+      if (!serialized) result = { ...base, kind: 'http', imageUrl: probe.url, reason: got.error };
+    }
+  }
+  if (!result && serialized?.svgText) {
+    const bytes = new TextEncoder().encode(serialized.svgText);
+    const out = await processBytes(bytes, 'image/svg+xml', serialized, { copy: false });
+    result = { ...base, ...out, kind: 'inline', label: `Inline SVG · ${formatBytes(out.bytes)}`, copied: false };
+    result.copied = serialized.copied || (await copyTextToClipboard(serialized.svgText, tab.id, frameId));
+    if (bytes.byteLength <= MAX_FULL_BYTES) {
+      result.full = await blobToDataUrl(new Blob([bytes], { type: 'image/svg+xml' }));
+    }
+  }
+  if (!result) throw new CaptureError('nobytes', 'svg probe returned nothing usable');
+  if (!result.copied && !result.reason) result.reason = 'clipboard';
+  return persistAndNotify(result, tab, progress, { svg: true });
 }

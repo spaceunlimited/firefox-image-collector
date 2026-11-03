@@ -69,7 +69,7 @@ export function sanitizeEntry(raw) {
     .sort((a, b) => a.at - b.at)
     .slice(-MAX_CAPTURES_PER_ENTRY);
   if (!urls.length || !captures.length) return null;
-  const kind = ['http', 'data', 'blob'].includes(raw.kind) ? raw.kind : 'http';
+  const kind = ['http', 'data', 'blob', 'inline'].includes(raw.kind) ? raw.kind : 'http';
   const reason = str(raw.lastCopy?.reason, 32);
   const thumb = imageDataUrl(raw.thumb);
   const full = imageDataUrl(raw.full);

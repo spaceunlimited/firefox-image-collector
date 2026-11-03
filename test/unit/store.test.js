@@ -85,6 +85,23 @@ test('data: captures group by hash only and store the full copy', async () => {
   assert.equal(b.entry.id, a.entry.id);
 });
 
+test('inline captures list their label, store the full copy and dedup by hash', async () => {
+  const c = cap({
+    kind: 'inline', imageUrl: undefined, label: 'Inline SVG · 1.2 kB',
+    hash: 'sha256:svg', full: 'data:image/svg+xml;base64,AAAA',
+  });
+  const a = await store.recordCapture(c);
+  assert.deepEqual(a.entry.urls, ['Inline SVG · 1.2 kB']);
+  assert.equal(a.entry.kind, 'inline');
+  assert.equal(a.entry.hasFull, true);
+  const index = await store.readIndex();
+  assert.deepEqual(index.urls, {});
+  assert.equal(index.hashes['sha256:svg'], a.entry.id);
+  const b = await store.recordCapture({ ...c, at: 2_000 });
+  assert.equal(b.isNew, false);
+  assert.equal(b.entry.id, a.entry.id);
+});
+
 test('quota error retries without image data', async () => {
   fake = installFakeBrowser({ failSetWhen: (items) => Object.keys(items).some((k) => k.startsWith('thumb:')) });
   const { entry, degraded } = await store.recordCapture(cap());
