@@ -208,7 +208,18 @@ async function recopy(entry) {
     console.error('[sidebar] recopy failed', err);
     res = { ok: false, reason: 'unknown' };
   }
-  if (res?.ok) notice.show(res.scaled ? 'Copied at reduced size' : 'Copied');
+  if (!res?.ok && res?.text) {
+    // The background clipboard rejected the SVG text; this page is focused, so write
+    // it here and let the background record the successful copy.
+    try {
+      await navigator.clipboard.writeText(res.text);
+      res = { ok: true, asSvg: true };
+      browser.runtime.sendMessage({ type: 'recopy-succeeded', id: entry.id }).catch(() => {});
+    } catch (err) {
+      console.warn('[sidebar] clipboard fallback failed', err);
+    }
+  }
+  if (res?.ok) notice.show(res.asSvg ? 'Copied as SVG' : res.scaled ? 'Copied at reduced size' : 'Copied');
   else notice.show(`Couldn't copy. ${FAILURE_TEXT[res?.reason] ?? FAILURE_TEXT.unknown}`, { ms: 7000 });
 }
 

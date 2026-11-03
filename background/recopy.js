@@ -21,7 +21,12 @@ async function findBytes(entry) {
   return { error: lastError };
 }
 
-/** @returns {Promise<{ ok: boolean, reason?: string, scaled?: boolean }>} */
+/**
+ * SVG entries re-copy as markup text, like their original capture; everything else as an
+ * image. When the background clipboard rejects the text, it is returned so the sidebar
+ * (a focused page) can write it and confirm with a 'recopy-succeeded' message.
+ * @returns {Promise<{ ok: boolean, reason?: string, scaled?: boolean, asSvg?: boolean, text?: string }>}
+ */
 export async function recopy(id) {
   const entry = await getEntry(id);
   if (!entry) return { ok: false, reason: 'missing' };
@@ -33,7 +38,19 @@ export async function recopy(id) {
     });
     return { ok: false, reason: error };
   }
-  const out = await processBytes(got.bytes, got.contentType, {}, { copy: true, thumbnail: !entry.hasThumb });
+  const asSvg = entry.mime === 'image/svg+xml';
+  const out = await processBytes(got.bytes, got.contentType, {}, { copy: !asSvg, thumbnail: !entry.hasThumb });
+  let text = null;
+  if (asSvg) {
+    text = new TextDecoder().decode(got.bytes);
+    try {
+      await navigator.clipboard.writeText(text);
+      out.copied = true;
+    } catch (e) {
+      out.reason = 'clipboard';
+      console.warn('[recopy] background text copy failed', e?.message);
+    }
+  }
   await updateEntry(id, (e) => {
     if (out.copied) e.copyCount += 1;
     e.lastCopy = out.copied ? { status: 'ok', at } : { status: 'failed', reason: out.reason, at };
@@ -45,6 +62,16 @@ export async function recopy(id) {
     e.mime ??= out.mime;
   });
   if (out.thumb && !entry.hasThumb) await saveThumb(id, out.thumb);
-  console.log('[recopy]', { id, ok: out.copied, reason: out.reason });
-  return { ok: out.copied, reason: out.reason, scaled: out.scaled };
+  console.log('[recopy]', { id, ok: out.copied, reason: out.reason, asSvg });
+  const res = { ok: out.copied, reason: out.reason, scaled: out.scaled, asSvg };
+  if (asSvg && !out.copied) res.text = text;
+  return res;
+}
+
+// Records a copy the sidebar completed after the background clipboard failed.
+export function markCopied(id) {
+  return updateEntry(id, (e) => {
+    e.copyCount += 1;
+    e.lastCopy = { status: 'ok', at: Date.now() };
+  });
 }

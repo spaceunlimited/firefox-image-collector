@@ -3,7 +3,7 @@
 import { flashBadge, toast } from './feedback.js';
 import { captureFromMenu, captureSvgFromMenu, inject } from './capture.js';
 import { probeSvgPresence } from '../content/probe.js';
-import { recopy } from './recopy.js';
+import { recopy, markCopied } from './recopy.js';
 import { ensureSchema, getSettings, purgeOlderThan } from '../shared/store.js';
 import { hasAllSites } from '../shared/permissions.js';
 import { openCollectionTab } from '../shared/open-tab.js';
@@ -109,6 +109,9 @@ browser.runtime.onMessage.addListener((msg) => {
       console.error('[recopy] failed', e);
       return { ok: false, reason: 'unknown' };
     });
+  }
+  if (msg?.type === 'recopy-succeeded') {
+    return markCopied(msg.id).then(() => ({ ok: true }));
   }
   return undefined;
 });
